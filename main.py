@@ -127,10 +127,10 @@ def handle_commands():
                 ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                 ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                 ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
-                ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
-                ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                 ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
-                ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
+                ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
+                ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
+                ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"]
             ]
     elif "set" in command:
         args = command.split()
@@ -151,33 +151,61 @@ def handle_debugs(grabbed_unit):
 
 #Find all the valid locations to move
 def find_pos(grabbed_unit, grabbed_pos):
-   if grabbed_unit == "BP":
+    if grabbed_unit == "BP":
         possible_x = grabbed_pos[1]
         possible_y = grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0]
+        kill_x1 = grabbed_pos[1] + 1
+        kill_x2 = grabbed_pos[1] - 1
         if possible_y > 7:
             return
-        if grid[possible_y][possible_x] != "":
+        if grid[possible_y][possible_x] == "":
+            grid[possible_y][possible_x] = "O"
+        if "W" in grid[possible_y][kill_x1]:
+            grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "O"
+        if "W" in grid[possible_y][kill_x2]:
+            grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "O"
+    if grabbed_unit == "WP":
+        possible_x = grabbed_pos[1]
+        possible_y = grabbed_pos[0] + WHITE_MOVES["Pawn"][0][0]
+        kill_x1 = grabbed_pos[1] + 1
+        kill_x2 = grabbed_pos[1] - 1
+        if possible_y > 7:
             return
-        grid[possible_y][possible_x] = "O"
+        if grid[possible_y][possible_x] == "":
+            grid[possible_y][possible_x] = "O"
+        if "B" in grid[possible_y][kill_x1]:
+            grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "O"
+        if "B" in grid[possible_y][kill_x2]:
+            grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "O"
 
 #Because it doesn't like removing circles
 def remove_pos(grabbed_unit, grabbed_pos):
     if grabbed_unit == "BP":
         possible_x = grabbed_pos[1]
-        possible_y = grabbed_pos[0] + 1
+        possible_y = grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0]
+        kill_x1 = grabbed_pos[1] + 1
+        kill_x2 = grabbed_pos[1] - 1
         if possible_y > 7:
             return
-        if grid[possible_y][possible_x] != "O":
-            return
-        grid[possible_y][possible_x] = ""
+        if grid[possible_y][possible_x] == "":
+            grid[possible_y][possible_x] = "O"
+        if "O" in grid[possible_y][kill_x1]:
+            grid[possible_y][kill_x1].replace("O", "")
+        if "O" in grid[possible_y][kill_x2]:
+            grid[possible_y][kill_x2].replace("O", "")
     if grabbed_unit == "WP":
         possible_x = grabbed_pos[1]
-        possible_y = grabbed_pos[0] + 1
+        possible_y = grabbed_pos[0] + WHITE_MOVES["Pawn"][0][0]
+        kill_x1 = grabbed_pos[1] + 1
+        kill_x2 = grabbed_pos[1] - 1
         if possible_y > 7:
             return
-        if grid[possible_y][possible_x] != "O":
-            return
-        grid[possible_y][possible_x] = ""
+        if grid[possible_y][possible_x] == "":
+            grid[possible_y][possible_x] = "O"
+        if "O" in grid[possible_y][kill_x1]:
+            grid[possible_y][kill_x1].replace("O", "")
+        if "O" in grid[possible_y][kill_x2]:
+            grid[possible_y][kill_x2].replace("O", "")
 
 #Draw the screen
 def draw_debug():
@@ -218,12 +246,12 @@ def draw_board(offset_x, offset_y, grid_size, cell_size):
         for cell_x in range(grid_size):
             cell = pg.Rect(move_x, move_y, cell_size, cell_size)
             pg.draw.rect(SCREEN, colour, cell)
-            if grid[cell_y][cell_x] == "O":
-                pg.draw.circle(SCREEN, BLUE, (move_x + (cell_size//2), move_y + (cell_size//2)), cell_size//3, 5)
-            elif grid[cell_y][cell_x] == "BP":
+            if "BP" in grid[cell_y][cell_x]:
                 SCREEN.blit(BLACK_PAWN, (move_x+15, move_y))
-            elif grid[cell_y][cell_x] == "WP":
+            if "WP" in grid[cell_y][cell_x]:
                 SCREEN.blit(WHITE_PAWN, (move_x+15, move_y))
+            if "O" in grid[cell_y][cell_x]:
+                pg.draw.circle(SCREEN, BLUE, (move_x + (cell_size//2), move_y + (cell_size//2)), cell_size//3, 5)
             move_x += cell_size
             if colour == WHITE:
                 colour = BLACK
@@ -271,7 +299,7 @@ def main():
                         find_pos(grabbed_unit, grabbed_pos)
                         grid[grid_y][grid_x] = ""
                     else:
-                        if grid[grid_y][grid_x] == "O":
+                        if "O" in grid[grid_y][grid_x]:
                             grid[grid_y][grid_x] = grabbed_unit
                             grabbed_unit = ""
                         else:
