@@ -84,21 +84,22 @@ debugs = [
     "Volume: "
 ]
 
+#Custom clamp function to keep grid index in range
+def clamp(val, min, max):
+    if val > max:
+        val = max
+    if val < min:
+        val = min
+    return val
+
+
 #Handle the logic
 def get_tile(x, y, offset_x, offset_y):
     global grid_x
     global grid_y
     global tile
-    grid_x = math.floor((x - offset_x)//CELL_SIZE)
-    grid_y = math.floor((y - offset_y)//CELL_SIZE)
-    if grid_x > 7:
-        grid_x = 7
-    elif grid_x < 0:
-        grid_x = 0
-    if grid_y > 7:
-        grid_y = 7
-    elif grid_y < 0:
-        grid_y = 0
+    grid_x = clamp(math.floor((x - offset_x)//CELL_SIZE), 0, 7)
+    grid_y = clamp(math.floor((y - offset_y)//CELL_SIZE), 0, 7)
     tile = grid[grid_y][grid_x]
 
 
@@ -153,66 +154,70 @@ def handle_debugs(grabbed_unit):
 def find_pos(grabbed_unit, grabbed_pos):
     if grabbed_unit == "BP":
         possible_x = grabbed_pos[1]
-        possible_y = grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0]
+        possible_y = clamp(grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0], 0, 7)
         kill_x1 = grabbed_pos[1] + 1
         kill_x2 = grabbed_pos[1] - 1
-        if possible_y > 7:
-            return
         if grid[possible_y][possible_x] == "":
             grid[possible_y][possible_x] = "O"
-        if kill_x1 <= 7:
-            if "W" in grid[possible_y][kill_x1]:
-                grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "O"
-        if kill_x2 >= 0:
-            if "W" in grid[possible_y][kill_x2]:
-                grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "O"
+            if grid[clamp(possible_y+1, 0, 7)][possible_x] == "" and grabbed_pos[0] == 1:
+                grid[clamp(possible_y+1, 0, 7)][possible_x] = "O"
+
+        if kill_x1 <= 7 and "W" in grid[possible_y][kill_x1]:
+            grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "O"
+        if kill_x2 >= 0 and "W" in grid[possible_y][kill_x2]:
+            grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "O"
+            
     if grabbed_unit == "WP":
         possible_x = grabbed_pos[1]
-        possible_y = grabbed_pos[0] + WHITE_MOVES["Pawn"][0][0]
+        possible_y = clamp(grabbed_pos[0] + WHITE_MOVES["Pawn"][0][0], 0, 7)
         kill_x1 = grabbed_pos[1] + 1
         kill_x2 = grabbed_pos[1] - 1
-        if possible_y < 0:
-            return
         if grid[possible_y][possible_x] == "":
             grid[possible_y][possible_x] = "O"
-        if kill_x1 <= 7:
-            if "B" in grid[possible_y][kill_x1]:
-                grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "O"
-        if kill_x2 >= 0:
-            if "B" in grid[possible_y][kill_x2]:
-                grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "O"
+            if grid[clamp(possible_y-1, 0, 7)][possible_x] == "" and grabbed_pos[0] == 6:
+                grid[clamp(possible_y-1, 0, 7)][possible_x] = "O"
+
+        if kill_x1 <= 7 and "B" in grid[possible_y][kill_x1]:
+            grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "O"
+        if kill_x2 >= 0 and "B" in grid[possible_y][kill_x2]:
+            grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "O"
 
 #Because it doesn't like removing circles
 def remove_pos(grabbed_unit, grabbed_pos):
     global grid
     if grabbed_unit == "BP":
         possible_x = grabbed_pos[1]
-        possible_y = grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0]
-        kill_x1 = grabbed_pos[1] + 1
-        kill_x2 = grabbed_pos[1] - 1
-        if grid[possible_y][possible_x] == "":
-            grid[possible_y][possible_x] = "O"
-        if kill_x1 <= 7:
-            if "W" in grid[possible_y][kill_x1]:
-                grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "O"
-        if kill_x2 >= 0:
-            if "W" in grid[possible_y][kill_x2]:
-                grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "O"
-    if grabbed_unit == "WP":
-        possible_x = grabbed_pos[1]
-        possible_y = grabbed_pos[0] + WHITE_MOVES["Pawn"][0][0]
+        possible_y = clamp(grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0], 0, 7)
         kill_x1 = grabbed_pos[1] + 1
         kill_x2 = grabbed_pos[1] - 1
         if grid[possible_y][possible_x] == "O":
             grid[possible_y][possible_x] = ""
-        if kill_x1 <= 7:
-            if "B" in grid[possible_y][kill_x1]:
-                point = grid[possible_y][kill_x1].replace("O", "")
-                grid[possible_y][kill_x1] = point
-        if kill_x2 >= 0:
-            if "B" in grid[possible_y][kill_x2]:
-                point = grid[possible_y][kill_x2].replace("O", "")
-                grid[possible_y][kill_x2] = point
+            if grid[clamp(possible_y+1, 0, 7)][possible_x] == "O" and grabbed_pos[0] == 1:
+                grid[clamp(possible_y+1, 0, 7)][possible_x] = ""
+
+        if kill_x1 <= 7 and "W" in grid[possible_y][kill_x1]:
+            point = grid[possible_y][kill_x1].replace("O", "")
+            grid[possible_y][kill_x1] = point
+        if kill_x2 >= 0 and "W" in grid[possible_y][kill_x2]:
+            point = grid[possible_y][kill_x2].replace("O", "")
+            grid[possible_y][kill_x2] = point
+            
+    if grabbed_unit == "WP":
+        possible_x = grabbed_pos[1]
+        possible_y = clamp(grabbed_pos[0] + WHITE_MOVES["Pawn"][0][0], 0, 7)
+        kill_x1 = grabbed_pos[1] + 1
+        kill_x2 = grabbed_pos[1] - 1
+        if grid[possible_y][possible_x] == "O":
+            grid[possible_y][possible_x] = ""
+            if grid[clamp(possible_y-1, 0, 7)][possible_x] == "O" and grabbed_pos[0] == 6:
+                grid[clamp(possible_y-1, 0, 7)][possible_x] = ""
+
+        if kill_x1 <= 7 and "B" in grid[possible_y][kill_x1]:
+            point = grid[possible_y][kill_x1].replace("O", "")
+            grid[possible_y][kill_x1] = point
+        if kill_x2 >= 0 and "B" in grid[possible_y][kill_x2]:
+            point = grid[possible_y][kill_x2].replace("O", "")
+            grid[possible_y][kill_x2] = point
 
 #Draw the screen
 def draw_debug():
@@ -307,7 +312,7 @@ def main():
                         grid[grid_y][grid_x] = ""
                     else:
                         if "O" in grid[grid_y][grid_x]:
-                            remove_pos(grabbed_unit, grabbed_pos)  
+                            remove_pos(grabbed_unit, grabbed_pos)
                             grid[grid_y][grid_x] = grabbed_unit
                             grabbed_unit = ""
                         else:
