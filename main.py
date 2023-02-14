@@ -19,13 +19,18 @@ OFFSET_Y = HEIGHT//2-(GRID_SIZE*CELL_SIZE//2)+20
 FPS = 60
 
 #Move Dictionaries
-BLACK_MOVES = {"Pawn":[[1, 0]]}
-WHITE_MOVES = {"Pawn":[[-1, 0]]}
+BLACK_MOVES = {"Pawn":[(1, 0)]}
+WHITE_MOVES = {"Pawn":[(-1, 0)]}
+MOVES = {
+    "Knight":[(2, 1), (-2, 1), (2, -1), (-2, -1), (1, 2), (-1, 2), (1, -2), (-1, -2)],
+    "Rook":8
+    }
 
 #Events
 REPEAT_SOUND = pg.USEREVENT + 1
 
 #Fonts
+BIG_DEFAULT_FONT = pg.font.SysFont('comicsans', 80)
 NORMAL_DEFAULT_FONT = pg.font.SysFont('comicsans', 40)
 SMALL_DEFAULT_FONT = pg.font.SysFont("comicsans", 20)
 
@@ -40,24 +45,31 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
+#Misc Images
+PLAY_IMAGE = pg.image.load(os.path.join("Assets", "play button.svg"))
+
 #Black Unit images
 BLACK_PAWN_IMAGE = pg.image.load(os.path.join("Assets", "Black Pawn.svg"))
 BLACK_PAWN = BLACK_PAWN_IMAGE
+BLACK_KNIGHT_IMAGE = pg.image.load(os.path.join("Assets", "Black Knight.svg"))
+BLACK_ROOK_IMAGE = pg.image.load(os.path.join("Assets", "Black Rook.svg"))
 
 #White Unit Images
 WHITE_PAWN_IMAGE = pg.image.load(os.path.join("Assets", "White Pawn.svg"))
 WHITE_PAWN = WHITE_PAWN_IMAGE
+WHITE_KNIGHT_IMAGE = pg.image.load(os.path.join("Assets", "White Knight.svg"))
+WHITE_ROOK_IMAGE = pg.image.load(os.path.join("Assets", "White Rook.svg"))
 
 #Global Vars
 grid = [
-    ["", "", "", "", "", "", "", ""],
+    ["BR", "BK", "", "", "", "", "BK", "BR"],
     ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
     ["", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", ""],
     ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
-    ["", "", "", "", "", "", "", ""],
+    ["WR", "WK", "", "", "", "", "WK", "WR"],
 ]
 old_grid = [
     ["", "", "", "", "", "", "", ""],
@@ -124,14 +136,14 @@ def handle_commands():
             ]
     elif command == "fill":
         grid = [
-                ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
+                ["BR", "BK", "BP", "BP", "BP", "BP", "BK", "BR"],
                 ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                 ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                 ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                 ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
                 ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
                 ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
-                ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"]
+                ["WR", "WK", "WP", "WP", "WP", "WP", "WK", "WR"]
             ]
     elif "set" in command:
         args = command.split()
@@ -152,6 +164,16 @@ def handle_debugs(grabbed_unit):
 
 #Find all the valid locations to move
 def find_pos(grabbed_unit, grabbed_pos):
+    if "K" in grabbed_unit:
+        for possible  in MOVES["Knight"]:
+            possible_x = grabbed_pos[1] + possible[1]
+            possible_y = grabbed_pos[0] + possible[0]
+            if possible_x > 7 or possible_y > 7 or possible_x < 0 or possible_y < 0:
+                continue
+            if "W" in grid[possible_y][possible_x]:
+                continue
+            grid[possible_y][possible_x] = grid[possible_y][possible_x] + "O"
+
     if grabbed_unit == "BP":
         possible_x = grabbed_pos[1]
         possible_y = clamp(grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0], 0, 7)
@@ -185,6 +207,13 @@ def find_pos(grabbed_unit, grabbed_pos):
 #Because it doesn't like removing circles
 def remove_pos(grabbed_unit, grabbed_pos):
     global grid
+    if "K" in grabbed_unit:
+        for possible  in MOVES["Knight"]:
+            possible_x = clamp(grabbed_pos[1] + possible[1], 0, 7)
+            possible_y = clamp(grabbed_pos[0] + possible[0], 0, 7)
+            point = grid[possible_y][possible_x].replace("O", "")
+            grid[possible_y][possible_x] = point
+
     if grabbed_unit == "BP":
         possible_x = grabbed_pos[1]
         possible_y = clamp(grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0], 0, 7)
@@ -241,9 +270,13 @@ def draw_screen(grid_size, cell_size, grabbed_unit):
     if grabbed_unit != "":
         mouse_pos = pg.mouse.get_pos()
         if grabbed_unit == "BP":
-            SCREEN.blit(BLACK_PAWN, (mouse_pos[0]-(cell_size//2)+15, mouse_pos[1]-(cell_size//2)))
+            SCREEN.blit(BLACK_PAWN, (mouse_pos[0]-(BLACK_PAWN.get_width()//2), mouse_pos[1]-(BLACK_PAWN.get_height()//2)))
+        elif grabbed_unit == "BK":
+            SCREEN.blit(BLACK_KNIGHT_IMAGE, (mouse_pos[0]-(BLACK_KNIGHT_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_KNIGHT_IMAGE.get_height()//2)))
         elif grabbed_unit == "WP":
-            SCREEN.blit(WHITE_PAWN, (mouse_pos[0]-(cell_size//2)+15, mouse_pos[1]-(cell_size//2)))
+            SCREEN.blit(WHITE_PAWN, (mouse_pos[0]-(WHITE_PAWN.get_width()//2), mouse_pos[1]-(WHITE_PAWN.get_height()//2)))
+        elif grabbed_unit == "WK":
+            SCREEN.blit(WHITE_KNIGHT_IMAGE, (mouse_pos[0]-(WHITE_KNIGHT_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_KNIGHT_IMAGE.get_height()//2)))
     if show_debug:
         draw_debug()
     draw_console()
@@ -259,9 +292,13 @@ def draw_board(offset_x, offset_y, grid_size, cell_size):
             cell = pg.Rect(move_x, move_y, cell_size, cell_size)
             pg.draw.rect(SCREEN, colour, cell)
             if "BP" in grid[cell_y][cell_x]:
-                SCREEN.blit(BLACK_PAWN, (move_x+15, move_y))
+                SCREEN.blit(BLACK_PAWN, (move_x+22, move_y+15))
+            if "BK" in grid[cell_y][cell_x]:
+                SCREEN.blit(BLACK_KNIGHT_IMAGE, (move_x+17, move_y))
             if "WP" in grid[cell_y][cell_x]:
-                SCREEN.blit(WHITE_PAWN, (move_x+15, move_y))
+                SCREEN.blit(WHITE_PAWN, (move_x+22, move_y+15))
+            if "WK" in grid[cell_y][cell_x]:
+                SCREEN.blit(WHITE_KNIGHT_IMAGE, (move_x+17, move_y))
             if "O" in grid[cell_y][cell_x]:
                 pg.draw.circle(SCREEN, BLUE, (move_x + (cell_size//2), move_y + (cell_size//2)), cell_size//3, 5)
             move_x += cell_size
@@ -276,6 +313,76 @@ def draw_board(offset_x, offset_y, grid_size, cell_size):
             colour = WHITE
 
 
+#Draw the title screem
+def draw_title(play_button):
+    SCREEN.fill((0, 150, 150))
+    title_text = BIG_DEFAULT_FONT.render("CHESS!!! PLAY NOW!", 1, WHITE)
+    SCREEN.blit(title_text, ((WIDTH//2 - title_text.get_width()//2, 75)))
+    pg.draw.rect(SCREEN, WHITE, play_button)
+    play_text = NORMAL_DEFAULT_FONT.render("PLAY CHESS", 1, BLACK)
+    SCREEN.blit(play_text, (WIDTH//2 - play_text.get_width()//2, play_button.y + 20))
+    if show_debug:
+        draw_debug()
+    draw_console()
+    pg.display.update()
+
+
+#Title screen loop
+def title():
+    play_button = pg.Rect(WIDTH//2 - 150, 300, 300, 100)
+    play_bounds = [(WIDTH//2 - 150, WIDTH//2 - 150 + 300), (300, 400)]
+
+    pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
+    
+    clock = pg.time.Clock()
+    run = True
+    global console_text
+    global command
+    SOUNDTRACK.play()
+    while run:
+        clock.tick(FPS)
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                run = False
+                pg.display.quit()
+            
+            if event.type == REPEAT_SOUND:
+                SOUNDTRACK.play()
+            
+            if event.type == pg.MOUSEBUTTONDOWN:
+                mouse = pg.mouse.get_pressed()
+                mouse_pos = pg.mouse.get_pos()
+                if mouse[0] and ((mouse_pos[0] >=play_bounds[0][0] and mouse_pos[0] <=play_bounds[0][1]) and (mouse_pos[1] >=play_bounds[1][0] and mouse_pos[1] <=play_bounds[1][1])):
+                    run = False
+                    break
+
+            if event.type == pg.KEYDOWN:
+                if console:
+                    if event.key == pg.K_BACKSPACE:
+                        if len(command)>0:
+                            command = command[:-1]
+                    elif event.key == pg.K_RETURN:
+                        console = False
+                        handle_commands()
+                        console_text = ''
+                        command = ''
+                        continue
+                    else:
+                        command += event.unicode
+                    
+                    console_text = '>' + command
+            
+                if event.key == pg.K_F1:
+                        console = True
+                        console_text = '>' + command
+        
+        if show_debug:
+            handle_debugs("O")
+        
+        draw_title(play_button)
+    main()
+
+#Main game loop
 def main():
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
     clock = pg.time.Clock()
@@ -287,7 +394,6 @@ def main():
     global command
     global grid
     global old_grid
-    SOUNDTRACK.play()
     while run:
         clock.tick(FPS)
         for event in pg.event.get():
@@ -345,8 +451,8 @@ def main():
         
         draw_screen(GRID_SIZE, CELL_SIZE, grabbed_unit)
 
-    main()
+    title()
 
 
 if __name__ == "__main__":
-    main()
+    title()
