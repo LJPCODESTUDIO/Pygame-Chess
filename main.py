@@ -23,7 +23,7 @@ BLACK_MOVES = {"Pawn":[(1, 0)]}
 WHITE_MOVES = {"Pawn":[(-1, 0)]}
 MOVES = {
     "Knight":[(2, 1), (-2, 1), (2, -1), (-2, -1), (1, 2), (-1, 2), (1, -2), (-1, -2)],
-    "Rook":8
+    "Rook":(4, 8)
     }
 
 #Events
@@ -164,13 +164,42 @@ def handle_debugs(grabbed_unit):
 
 #Find all the valid locations to move
 def find_pos(grabbed_unit, grabbed_pos):
+    if "R" in grabbed_unit:
+        direction = 1
+        for i in range(MOVES["Rook"][0]):
+            possible_x = grabbed_pos[1]
+            possible_y = grabbed_pos[0]
+            for possible in range(MOVES["Rook"][1]):
+                if direction == 1:
+                    possible_y = clamp(possible_y + 1, 0, 7)
+                elif direction == 2:
+                    possible_x = clamp(possible_x + 1, 0, 7)
+                elif direction == 3:
+                    possible_y = clamp(possible_y - 1, 0, 7)
+                elif direction == 4:
+                    possible_x = clamp(possible_x - 1, 0, 7)
+
+                if grid[possible_y][possible_x] == "":
+                    grid[possible_y][possible_x] = "O"
+                elif "W" in grid[possible_y][possible_x]:
+                    if "B" in grabbed_unit:
+                        grid[possible_y][possible_x] = grid[possible_y][possible_x] + "O"
+                    break
+                elif "B" in grid[possible_y][possible_x]:
+                    if "W" in grabbed_unit:
+                        grid[possible_y][possible_x] = grid[possible_y][possible_x] + "O"
+                    break
+            direction += 1
+
     if "K" in grabbed_unit:
         for possible  in MOVES["Knight"]:
             possible_x = grabbed_pos[1] + possible[1]
             possible_y = grabbed_pos[0] + possible[0]
             if possible_x > 7 or possible_y > 7 or possible_x < 0 or possible_y < 0:
                 continue
-            if "W" in grid[possible_y][possible_x]:
+            if "W" in grid[possible_y][possible_x] and "W" in grabbed_unit:
+                continue
+            if "B" in grid[possible_y][possible_x] and "B" in grabbed_unit:
                 continue
             grid[possible_y][possible_x] = grid[possible_y][possible_x] + "O"
 
@@ -207,6 +236,36 @@ def find_pos(grabbed_unit, grabbed_pos):
 #Because it doesn't like removing circles
 def remove_pos(grabbed_unit, grabbed_pos):
     global grid
+    if "R" in grabbed_unit:
+        direction = 1
+        for i in range(MOVES["Rook"][0]):
+            possible_x = grabbed_pos[1]
+            possible_y = grabbed_pos[0]
+            for possible in range(MOVES["Rook"][1]):
+                if direction == 1:
+                    possible_y = clamp(possible_y + 1, 0, 7)
+                elif direction == 2:
+                    possible_x = clamp(possible_x + 1, 0, 7)
+                elif direction == 3:
+                    possible_y = clamp(possible_y - 1, 0, 7)
+                elif direction == 4:
+                    possible_x = clamp(possible_x - 1, 0, 7)
+                    
+                if grid[possible_y][possible_x] == "O":
+                    point = grid[possible_y][possible_x].replace("O", "")
+                    grid[possible_y][possible_x] = point
+                elif "W" in grid[possible_y][possible_x]:
+                    if "B" in grabbed_unit:
+                        point = grid[possible_y][possible_x].replace("O", "")
+                        grid[possible_y][possible_x] = point
+                    break
+                elif "B" in grid[possible_y][possible_x]:
+                    if "W" in grabbed_unit:
+                        point = grid[possible_y][possible_x].replace("O", "")
+                        grid[possible_y][possible_x] = point
+                    break
+            direction += 1
+
     if "K" in grabbed_unit:
         for possible  in MOVES["Knight"]:
             possible_x = clamp(grabbed_pos[1] + possible[1], 0, 7)
@@ -273,10 +332,14 @@ def draw_screen(grid_size, cell_size, grabbed_unit):
             SCREEN.blit(BLACK_PAWN, (mouse_pos[0]-(BLACK_PAWN.get_width()//2), mouse_pos[1]-(BLACK_PAWN.get_height()//2)))
         elif grabbed_unit == "BK":
             SCREEN.blit(BLACK_KNIGHT_IMAGE, (mouse_pos[0]-(BLACK_KNIGHT_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_KNIGHT_IMAGE.get_height()//2)))
+        elif grabbed_unit == "BR":
+            SCREEN.blit(BLACK_ROOK_IMAGE, (mouse_pos[0]-(BLACK_ROOK_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_ROOK_IMAGE.get_height()//2)))
         elif grabbed_unit == "WP":
             SCREEN.blit(WHITE_PAWN, (mouse_pos[0]-(WHITE_PAWN.get_width()//2), mouse_pos[1]-(WHITE_PAWN.get_height()//2)))
         elif grabbed_unit == "WK":
             SCREEN.blit(WHITE_KNIGHT_IMAGE, (mouse_pos[0]-(WHITE_KNIGHT_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_KNIGHT_IMAGE.get_height()//2)))
+        elif grabbed_unit == "WR":
+            SCREEN.blit(WHITE_ROOK_IMAGE, (mouse_pos[0]-(WHITE_ROOK_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_ROOK_IMAGE.get_height()//2)))
     if show_debug:
         draw_debug()
     draw_console()
@@ -295,10 +358,14 @@ def draw_board(offset_x, offset_y, grid_size, cell_size):
                 SCREEN.blit(BLACK_PAWN, (move_x+22, move_y+15))
             if "BK" in grid[cell_y][cell_x]:
                 SCREEN.blit(BLACK_KNIGHT_IMAGE, (move_x+17, move_y))
+            if "BR" in grid[cell_y][cell_x]:
+                SCREEN.blit(BLACK_ROOK_IMAGE, (move_x+15, move_y))
             if "WP" in grid[cell_y][cell_x]:
                 SCREEN.blit(WHITE_PAWN, (move_x+22, move_y+15))
             if "WK" in grid[cell_y][cell_x]:
                 SCREEN.blit(WHITE_KNIGHT_IMAGE, (move_x+17, move_y))
+            if "WR" in grid[cell_y][cell_x]:
+                SCREEN.blit(WHITE_ROOK_IMAGE, (move_x+15, move_y))
             if "O" in grid[cell_y][cell_x]:
                 pg.draw.circle(SCREEN, BLUE, (move_x + (cell_size//2), move_y + (cell_size//2)), cell_size//3, 5)
             move_x += cell_size
