@@ -59,9 +59,6 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-#Misc Images
-PLAY_IMAGE = pg.image.load(os.path.join("Assets", "play button.svg"))
-
 #Black Unit images
 BLACK_PAWN = pg.image.load(os.path.join("Assets", "Black Pawn.svg"))
 BLACK_KNIGHT_IMAGE = pg.image.load(os.path.join("Assets", "Black Knight.svg"))
@@ -273,13 +270,13 @@ def handle_check(grabbed_unit, grabbed_pos):
                 
                 if possible_x > 7 or possible_y > 7 or possible_x < 0 or possible_y < 0:
                     continue
-
-                if "WG" in grid[possible_y][possible_x]:
-                    if "B" in grabbed_unit:
+                
+                if "W" in grid[possible_y][possible_x]:
+                    if "B" in grabbed_unit and "G" in grid[possible_y][possible_x]:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
-                elif "BG" in grid[possible_y][possible_x]:
-                    if "W" in grabbed_unit:
+                elif "B" in grid[possible_y][possible_x]:
+                    if "W" in grabbed_unit and "G" in grid[possible_y][possible_x]:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
             direction += 1
@@ -306,7 +303,7 @@ def handle_check(grabbed_unit, grabbed_pos):
                 if possible_x > 7 or possible_y > 7 or possible_x < 0 or possible_y < 0:
                     continue
 
-                elif "W" in grid[possible_y][possible_x]:
+                if "W" in grid[possible_y][possible_x]:
                     if "B" in grabbed_unit and "G" in grid[possible_y][possible_x]:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
@@ -331,7 +328,7 @@ def handle_check(grabbed_unit, grabbed_pos):
                 elif direction == 4:
                     possible_x = clamp(possible_x - 1, 0, 7)
 
-                elif "W" in grid[possible_y][possible_x]:
+                if "W" in grid[possible_y][possible_x]:
                     if "B" in grabbed_unit and "G" in grid[possible_y][possible_x]:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
@@ -594,12 +591,14 @@ def draw_screen(grid_size, cell_size, grabbed_unit, turn, check):
 
     if "W" in check[0]:
         check_text1 = BIG_DEFAULT_FONT.render("CHECK! PANIC!", 1, BLUE)
-        check_text1 = pg.transform.rotate(check_text1, pg.time.get_ticks()//2)
-        SCREEN.blit(check_text1, (WIDTH//2 - check_text1.get_width()//2, HEIGHT//2 - check_text1.get_height()//2))
+        #check_text1 = pg.transform.rotate(check_text1, pg.time.get_ticks()//4)
+        y = math.cos(pg.time.get_ticks()/150) * -100 + 600
+        SCREEN.blit(check_text1, (WIDTH//2 - check_text1.get_width()//2, y))
     if "B" in check[1]:
         check_text2 = BIG_DEFAULT_FONT.render("CHECK! PANIC!", 1, RED)
-        check_text2 = pg.transform.rotate(check_text2, pg.time.get_ticks()//-2)
-        SCREEN.blit(check_text2, (WIDTH//2 - check_text2.get_width()//2, HEIGHT//2 - check_text2.get_height()//2))
+        #check_text2 = pg.transform.rotate(check_text2, pg.time.get_ticks()//-4)
+        y = math.cos(pg.time.get_ticks()/150) * 100
+        SCREEN.blit(check_text2, (WIDTH//2 - check_text2.get_width()//2, y))
 
     if grabbed_unit != "":
         mouse_pos = pg.mouse.get_pos()
