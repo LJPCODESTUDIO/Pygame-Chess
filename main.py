@@ -29,8 +29,19 @@ MOVES = {
     "King": [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
     }
 
+
+#Custom Event ID's
+ON_WHITE_CHECK = 1
+ON_BLACK_CHECK = 2
+ON_NO_WHITE_CHECK = 3
+ON_NO_BLACK_CHECK = 4
+
 #Events
 REPEAT_SOUND = pg.USEREVENT + 1
+WHITE_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=ON_WHITE_CHECK)
+BLACK_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=ON_BLACK_CHECK)
+NO_WHITE_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=ON_NO_WHITE_CHECK)
+NO_BLACK_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=ON_NO_BLACK_CHECK)
 
 #Fonts
 BIG_DEFAULT_FONT = pg.font.SysFont('comicsans', 80)
@@ -69,14 +80,14 @@ WHITE_KING_IMAGE = pg.image.load(os.path.join("Assets", "White King.svg"))
 
 #Global Vars
 grid = [
-    ["BR", "BK", "BBI", "BQ", "BG", "BBI", "BK", "BR"],
+    ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
     ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
     ["", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", ""],
     ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
-    ["WR", "WK", "WBI", "WQ", "WG", "WBI", "WK", "WR"],
+    ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"],
 ]
 old_grid = [
     ["", "", "", "", "", "", "", ""],
@@ -145,6 +156,39 @@ def handle_commands():
                 ["", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", ""]
             ]
+    elif command == "Royalty":
+        grid = [
+                ["BG", "BG", "BG", "BG", "BG", "BG", "BG", "BG"],
+                ["BG", "BG", "BG", "BG", "BG", "BG", "BG", "BG"],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["WG", "WG", "WG", "WG", "WG", "WG", "WG", "WG"],
+                ["WG", "WG", "WG", "WG", "WG", "WG", "WG", "WG"]
+            ]
+    elif command == "Royalty2":
+        grid = [
+                ["BQ", "BQ", "BQ", "BQ", "BG", "BQ", "BQ", "BQ"],
+                ["BQ", "BQ", "BQ", "BQ", "BQ", "BQ", "BQ", "BQ"],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["WQ", "WQ", "WQ", "WQ", "WQ", "WQ", "WQ", "WQ"],
+                ["WQ", "WQ", "WQ", "WQ", "WG", "WQ", "WQ", "WQ"]
+            ]
+    elif command == "restart":
+        grid = [
+                ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
+                ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
+                ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"],
+            ]
     elif command == "fill":
         grid = [
                 ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
@@ -184,6 +228,167 @@ def handle_debugs(grabbed_unit):
     debugs[3] = f"Grabbed: {grabbed_unit}"
     debugs[4] = "Clock: " + str(pg.time.get_ticks())
     debugs[5] = "Volume: %" + str(SOUNDTRACK.get_volume()*100)
+
+
+def handle_check(grabbed_unit, grabbed_pos):
+    if "G" in grabbed_unit:
+        for possible  in MOVES["King"]:
+            possible_x = grabbed_pos[1] + possible[1]
+            possible_y = grabbed_pos[0] + possible[0]
+            if possible_x > 7 or possible_y > 7 or possible_x < 0 or possible_y < 0:
+                continue
+            if "W" in grid[possible_y][possible_x] and "W" in grabbed_unit:
+                continue
+            if "B" in grid[possible_y][possible_x] and "B" in grabbed_unit:
+                continue
+            if "G" in grid[possible_y][possible_x]:
+                grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
+
+    if "Q" in grabbed_unit:
+        direction = 1
+        for i in range(MOVES["Queen"][0]):
+            possible_x = grabbed_pos[1]
+            possible_y = grabbed_pos[0]
+            for possible in range(MOVES["Queen"][1]):
+                if direction == 1:#|
+                    possible_y = possible_y - 1
+                elif direction == 2:#/
+                    possible_x = possible_x + 1
+                    possible_y = possible_y - 1
+                elif direction == 3:#-
+                    possible_x = possible_x + 1
+                elif direction == 4:#\
+                    possible_x = possible_x + 1
+                    possible_y = possible_y + 1
+                elif direction == 5:#|
+                    possible_y = possible_y + 1
+                elif direction == 6:#/
+                    possible_x = possible_x - 1
+                    possible_y = possible_y + 1
+                elif direction == 7:#-
+                    possible_x = possible_x - 1
+                elif direction == 8:#\
+                    possible_x = possible_x - 1
+                    possible_y = possible_y - 1
+                
+                if possible_x > 7 or possible_y > 7 or possible_x < 0 or possible_y < 0:
+                    continue
+
+                if "WG" in grid[possible_y][possible_x]:
+                    if "B" in grabbed_unit:
+                        grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
+                    break
+                elif "BG" in grid[possible_y][possible_x]:
+                    if "W" in grabbed_unit:
+                        grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
+                    break
+            direction += 1
+
+    if "F" in grabbed_unit:
+        direction = 1
+        for i in range(MOVES["Bishop"][0]):
+            possible_x = grabbed_pos[1]
+            possible_y = grabbed_pos[0]
+            for possible in range(MOVES["Bishop"][1]):
+                if direction == 1:
+                    possible_x = possible_x + 1
+                    possible_y = possible_y + 1
+                elif direction == 2:
+                    possible_x = possible_x + 1
+                    possible_y = possible_y - 1
+                elif direction == 3:
+                    possible_x = possible_x - 1
+                    possible_y = possible_y - 1
+                elif direction == 4:
+                    possible_x = possible_x - 1
+                    possible_y = possible_y + 1
+                
+                if possible_x > 7 or possible_y > 7 or possible_x < 0 or possible_y < 0:
+                    continue
+
+                elif "W" in grid[possible_y][possible_x]:
+                    if "B" in grabbed_unit and "G" in grid[possible_y][possible_x]:
+                        grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
+                    break
+                elif "B" in grid[possible_y][possible_x]:
+                    if "W" in grabbed_unit and "G" in grid[possible_y][possible_x]:
+                        grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
+                    break
+            direction += 1
+
+    if "R" in grabbed_unit:
+        direction = 1
+        for i in range(MOVES["Rook"][0]):
+            possible_x = grabbed_pos[1]
+            possible_y = grabbed_pos[0]
+            for possible in range(MOVES["Rook"][1]):
+                if direction == 1:
+                    possible_y = clamp(possible_y + 1, 0, 7)
+                elif direction == 2:
+                    possible_x = clamp(possible_x + 1, 0, 7)
+                elif direction == 3:
+                    possible_y = clamp(possible_y - 1, 0, 7)
+                elif direction == 4:
+                    possible_x = clamp(possible_x - 1, 0, 7)
+
+                elif "W" in grid[possible_y][possible_x]:
+                    if "B" in grabbed_unit and "G" in grid[possible_y][possible_x]:
+                        grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
+                    break
+                elif "B" in grid[possible_y][possible_x]:
+                    if "W" in grabbed_unit and "G" in grid[possible_y][possible_x]:
+                        grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
+                    break
+            direction += 1
+
+    if "K" in grabbed_unit:
+        for possible  in MOVES["Knight"]:
+            possible_x = grabbed_pos[1] + possible[1]
+            possible_y = grabbed_pos[0] + possible[0]
+            if possible_x > 7 or possible_y > 7 or possible_x < 0 or possible_y < 0:
+                continue
+            if "W" in grid[possible_y][possible_x] and "W" in grabbed_unit:
+                continue
+            if "B" in grid[possible_y][possible_x] and "B" in grabbed_unit:
+                continue
+            if "G" in grid[possible_y][possible_x]:
+                grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
+
+    if grabbed_unit == "BP":
+        possible_x = grabbed_pos[1]
+        possible_y = grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0]
+        kill_x1 = grabbed_pos[1] + 1
+        kill_x2 = grabbed_pos[1] - 1
+
+        if possible_y > 7:
+            return
+
+        if kill_x1 <= 7 and "W" in grid[possible_y][kill_x1] and "G" in grid[possible_y][possible_x]:
+            grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "X"
+        if kill_x2 >= 0 and "W" in grid[possible_y][kill_x2] and "G" in grid[possible_y][possible_x]:
+            grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "X"
+            
+    if grabbed_unit == "WP":
+        possible_x = grabbed_pos[1]
+        possible_y = grabbed_pos[0] + WHITE_MOVES["Pawn"][0][0]
+        kill_x1 = grabbed_pos[1] + 1
+        kill_x2 = grabbed_pos[1] - 1
+
+        if possible_y < 0:
+            return
+
+        if kill_x1 <= 7 and "B" in grid[possible_y][kill_x1] and "G" in grid[possible_y][possible_x]:
+            grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "X"
+        if kill_x2 >= 0 and "B" in grid[possible_y][kill_x2] and "G" in grid[possible_y][possible_x]:
+            grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "X"
+
+
+def check_check():
+    global grid
+    for cell_y in range(GRID_SIZE):
+        for cell_x in range(GRID_SIZE):
+            handle_check(grid[cell_y][cell_x], (cell_y, cell_x))
+
 
 #Find all the valid locations to move
 def find_pos(grabbed_unit, grabbed_pos):
@@ -359,6 +564,9 @@ def remove_pos(grabbed_unit, grabbed_pos):
         for cell_x in range(GRID_SIZE):
             point = grid[cell_y][cell_x].replace("O", "")
             grid[cell_y][cell_x] = point
+            point = grid[cell_y][cell_x].replace("X", "")
+            grid[cell_y][cell_x] = point
+            check_check()
 
 #Draw the screen
 def draw_debug():
@@ -374,15 +582,25 @@ def draw_console():
     SCREEN.blit(text, (10, HEIGHT - text.get_height() - 5))
 
 
-def draw_screen(grid_size, cell_size, grabbed_unit, turn):
+def draw_screen(grid_size, cell_size, grabbed_unit, turn, check):
     SCREEN.fill((0, 150, 150))
     draw_board(OFFSET_X, OFFSET_Y, grid_size, cell_size)
     if "W" in turn:
         colour = WHITE
     else:
         colour = BLACK
-    title = NORMAL_DEFAULT_FONT.render(f"{turn}'s Turn!", 1, colour)
-    SCREEN.blit(title, (WIDTH//2 - title.get_width()//2, -5))
+    title_text = NORMAL_DEFAULT_FONT.render(f"{turn}'s Turn!", 1, colour)
+    SCREEN.blit(title_text, (WIDTH//2 - title_text.get_width()//2, -5))
+
+    if "W" in check[0]:
+        check_text1 = BIG_DEFAULT_FONT.render("CHECK! PANIC!", 1, BLUE)
+        check_text1 = pg.transform.rotate(check_text1, pg.time.get_ticks()//2)
+        SCREEN.blit(check_text1, (WIDTH//2 - check_text1.get_width()//2, HEIGHT//2 - check_text1.get_height()//2))
+    if "B" in check[1]:
+        check_text2 = BIG_DEFAULT_FONT.render("CHECK! PANIC!", 1, RED)
+        check_text2 = pg.transform.rotate(check_text2, pg.time.get_ticks()//-2)
+        SCREEN.blit(check_text2, (WIDTH//2 - check_text2.get_width()//2, HEIGHT//2 - check_text2.get_height()//2))
+
     if grabbed_unit != "":
         mouse_pos = pg.mouse.get_pos()
         if grabbed_unit == "BP":
@@ -391,7 +609,7 @@ def draw_screen(grid_size, cell_size, grabbed_unit, turn):
             SCREEN.blit(BLACK_KNIGHT_IMAGE, (mouse_pos[0]-(BLACK_KNIGHT_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_KNIGHT_IMAGE.get_height()//2)))
         elif grabbed_unit == "BR":
             SCREEN.blit(BLACK_ROOK_IMAGE, (mouse_pos[0]-(BLACK_ROOK_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_ROOK_IMAGE.get_height()//2)))
-        elif grabbed_unit == "BBI":
+        elif grabbed_unit == "BF":
             SCREEN.blit(BLACK_BISHOP_IMAGE, (mouse_pos[0]-(BLACK_BISHOP_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_BISHOP_IMAGE.get_height()//2)))
         elif grabbed_unit == "BQ":
             SCREEN.blit(BLACK_QUEEN_IMAGE, (mouse_pos[0]-(BLACK_QUEEN_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_QUEEN_IMAGE.get_height()//2)))
@@ -403,7 +621,7 @@ def draw_screen(grid_size, cell_size, grabbed_unit, turn):
             SCREEN.blit(WHITE_KNIGHT_IMAGE, (mouse_pos[0]-(WHITE_KNIGHT_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_KNIGHT_IMAGE.get_height()//2)))
         elif grabbed_unit == "WR":
             SCREEN.blit(WHITE_ROOK_IMAGE, (mouse_pos[0]-(WHITE_ROOK_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_ROOK_IMAGE.get_height()//2)))
-        elif grabbed_unit == "WBI":
+        elif grabbed_unit == "WF":
             SCREEN.blit(WHITE_BISHOP_IMAGE, (mouse_pos[0]-(WHITE_BISHOP_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_BISHOP_IMAGE.get_height()//2)))
         elif grabbed_unit == "WQ":
             SCREEN.blit(WHITE_QUEEN_IMAGE, (mouse_pos[0]-(WHITE_QUEEN_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_QUEEN_IMAGE.get_height()//2)))
@@ -429,24 +647,35 @@ def draw_board(offset_x, offset_y, grid_size, cell_size):
                 SCREEN.blit(BLACK_KNIGHT_IMAGE, (move_x, move_y))
             if "BR" in grid[cell_y][cell_x]:
                 SCREEN.blit(BLACK_ROOK_IMAGE, (move_x, move_y))
-            if "BBI" in grid[cell_y][cell_x]:
+            if "BF" in grid[cell_y][cell_x]:
                 SCREEN.blit(BLACK_BISHOP_IMAGE, (move_x, move_y))
             if "BQ" in grid[cell_y][cell_x]:
                 SCREEN.blit(BLACK_QUEEN_IMAGE, (move_x, move_y))
             if "BG" in grid[cell_y][cell_x]:
                 SCREEN.blit(BLACK_KING_IMAGE, (move_x, move_y))
+                if "X" in grid[cell_y][cell_x]:
+                    pg.draw.circle(SCREEN, RED, (move_x + (cell_size//2), move_y + (cell_size//2)), cell_size//3, 5)
+                    pg.event.post(BLACK_CHECK_EVENT)
+                else:
+                    pg.event.post(NO_BLACK_CHECK_EVENT)
             if "WP" in grid[cell_y][cell_x]:
                 SCREEN.blit(WHITE_PAWN, (move_x, move_y))
             if "WK" in grid[cell_y][cell_x]:
                 SCREEN.blit(WHITE_KNIGHT_IMAGE, (move_x, move_y))
             if "WR" in grid[cell_y][cell_x]:
                 SCREEN.blit(WHITE_ROOK_IMAGE, (move_x, move_y))
-            if "WBI" in grid[cell_y][cell_x]:
+            if "WF" in grid[cell_y][cell_x]:
                 SCREEN.blit(WHITE_BISHOP_IMAGE, (move_x, move_y))
             if "WQ" in grid[cell_y][cell_x]:
                 SCREEN.blit(WHITE_QUEEN_IMAGE, (move_x, move_y))
             if "WG" in grid[cell_y][cell_x]:
                 SCREEN.blit(WHITE_KING_IMAGE, (move_x, move_y))
+                if "X" in grid[cell_y][cell_x]:
+                    pg.draw.circle(SCREEN, RED, (move_x + (cell_size//2), move_y + (cell_size//2)), cell_size//3, 5)
+                    pg.event.post(WHITE_CHECK_EVENT)
+                else:
+                    pg.event.post(NO_WHITE_CHECK_EVENT)
+
             if "O" in grid[cell_y][cell_x]:
                 if len(grid[cell_y][cell_x]) > 1:
                     pg.draw.circle(SCREEN, RED, (move_x + (cell_size//2), move_y + (cell_size//2)), cell_size//3, 5)
@@ -541,6 +770,7 @@ def main():
     run = True
     turn = "White"
     console = False
+    check = ["", ""]
     global console_text
     global command
     global grid
@@ -557,6 +787,16 @@ def main():
             if event.type == REPEAT_SOUND:
                 SOUNDTRACK.play()
             
+            if event.type == pg.USEREVENT:
+                if event.MyOwnType == ON_WHITE_CHECK:
+                    check[0] = "White"
+                if event.MyOwnType == ON_BLACK_CHECK:
+                    check[1] = "Black"
+                if event.MyOwnType == ON_NO_WHITE_CHECK:
+                    check[0] = ""
+                if event.MyOwnType == ON_NO_BLACK_CHECK:
+                    check[1] = ""
+            
             if event.type == pg.MOUSEBUTTONDOWN:
                 mouse = pg.mouse.get_pressed()
                 if mouse[0]:
@@ -566,7 +806,7 @@ def main():
                         if not turn[:1] in grid[grid_y][grid_x]:
                             continue
                         old_grid[grid_y][grid_x] = grid[grid_y][grid_x]
-                        grabbed = grid[grid_y][grid_x]
+                        grabbed = grid[grid_y][grid_x].replace("O", "")
                         grabbed_pos[0] = grid_y
                         grabbed_pos[1] = grid_x
                         find_pos(grabbed, grabbed_pos)
@@ -574,7 +814,12 @@ def main():
                     else:
                         if "O" in grid[grid_y][grid_x]:
                             remove_pos(grabbed, grabbed_pos)
+                            if "WP" in grabbed and grid_y == 0:
+                                grabbed = "WQ"
+                            if "BP" in grabbed and grid_y == 7:
+                                grabbed = "BQ"
                             grid[grid_y][grid_x] = grabbed
+                            check_check()
                             grabbed = ""
                             if "W" in turn:
                                 turn = "Black"
@@ -609,7 +854,7 @@ def main():
         if show_debug:
             handle_debugs(grabbed)
         
-        draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn)
+        draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check)
 
     title()
 
