@@ -147,14 +147,14 @@ def handle_commands():
             ]
     elif command == "fill":
         grid = [
-                ["BR", "BK", "BBI", "BQ", "BG", "BBI", "BK", "BR"],
+                ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
                 ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                 ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                 ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                 ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
                 ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
                 ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
-                ["WR", "WK", "WBI", "WQ", "WG", "WBI", "WK", "WR"]
+                ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"]
             ]
     elif "set" in command:
         args = command.split()
@@ -241,7 +241,7 @@ def find_pos(grabbed_unit, grabbed_pos):
                     break
             direction += 1
 
-    if "BI" in grabbed_unit:
+    if "F" in grabbed_unit:
         direction = 1
         for i in range(MOVES["Bishop"][0]):
             possible_x = grabbed_pos[1]
@@ -266,11 +266,11 @@ def find_pos(grabbed_unit, grabbed_pos):
                 if grid[possible_y][possible_x] == "":
                     grid[possible_y][possible_x] = "O"
                 elif "W" in grid[possible_y][possible_x]:
-                    if "BBI" in grabbed_unit:
+                    if "B" in grabbed_unit:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "O"
                     break
                 elif "B" in grid[possible_y][possible_x]:
-                    if "WBI" in grabbed_unit:
+                    if "W" in grabbed_unit:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "O"
                     break
             direction += 1
@@ -374,10 +374,14 @@ def draw_console():
     SCREEN.blit(text, (10, HEIGHT - text.get_height() - 5))
 
 
-def draw_screen(grid_size, cell_size, grabbed_unit):
+def draw_screen(grid_size, cell_size, grabbed_unit, turn):
     SCREEN.fill((0, 150, 150))
     draw_board(OFFSET_X, OFFSET_Y, grid_size, cell_size)
-    title = NORMAL_DEFAULT_FONT.render("Chess Match!", 1, WHITE)
+    if "W" in turn:
+        colour = WHITE
+    else:
+        colour = BLACK
+    title = NORMAL_DEFAULT_FONT.render(f"{turn}'s Turn!", 1, colour)
     SCREEN.blit(title, (WIDTH//2 - title.get_width()//2, -5))
     if grabbed_unit != "":
         mouse_pos = pg.mouse.get_pos()
@@ -535,6 +539,7 @@ def main():
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
     clock = pg.time.Clock()
     run = True
+    turn = "White"
     console = False
     global console_text
     global command
@@ -558,6 +563,8 @@ def main():
                     mouse_pos = pg.mouse.get_pos()
                     get_tile(mouse_pos[0], mouse_pos[1], OFFSET_X, OFFSET_Y)
                     if grabbed == "":
+                        if not turn[:1] in grid[grid_y][grid_x]:
+                            continue
                         old_grid[grid_y][grid_x] = grid[grid_y][grid_x]
                         grabbed = grid[grid_y][grid_x]
                         grabbed_pos[0] = grid_y
@@ -569,6 +576,11 @@ def main():
                             remove_pos(grabbed, grabbed_pos)
                             grid[grid_y][grid_x] = grabbed
                             grabbed = ""
+                            if "W" in turn:
+                                turn = "Black"
+                            else:
+                                turn = "White"
+
                         else:
                             grid[grabbed_pos[0]][grabbed_pos[1]] = old_grid[grabbed_pos[0]][grabbed_pos[1]]
                             remove_pos(grabbed, grabbed_pos)
@@ -597,7 +609,7 @@ def main():
         if show_debug:
             handle_debugs(grabbed)
         
-        draw_screen(GRID_SIZE, CELL_SIZE, grabbed)
+        draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn)
 
     title()
 
