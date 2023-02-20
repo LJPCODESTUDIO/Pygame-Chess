@@ -35,13 +35,18 @@ ON_WHITE_CHECK = 1
 ON_BLACK_CHECK = 2
 ON_NO_WHITE_CHECK = 3
 ON_NO_BLACK_CHECK = 4
+#Command Events
+ON_RETRY = 1
 
 #Events
 REPEAT_SOUND = pg.USEREVENT + 1
+#Check Events
 WHITE_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=ON_WHITE_CHECK)
 BLACK_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=ON_BLACK_CHECK)
 NO_WHITE_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=ON_NO_WHITE_CHECK)
 NO_BLACK_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=ON_NO_BLACK_CHECK)
+#Command Events
+RETRY = pg.event.Event(pg.USEREVENT + 1, MyOwnType=ON_RETRY)
 
 #Fonts
 BIG_DEFAULT_FONT = pg.font.SysFont('comicsans', 80)
@@ -145,6 +150,8 @@ def handle_commands():
             show_debug = False
             return
         show_debug = True
+    elif command == "retry":
+        pg.event.post(RETRY)
     elif command == "clear":
         grid = [
                 ["", "", "", "", "", "", "", ""],
@@ -582,94 +589,96 @@ def draw_console():
     SCREEN.blit(text, (10, HEIGHT - text.get_height() - 5))
 
 
-def draw_screen(grid_size, cell_size, grabbed_unit, turn, check):
-    SCREEN.fill((0, 150, 150))
-    draw_board(OFFSET_X, OFFSET_Y, grid_size, cell_size)
+def draw_screen(grid_size, cell_size, grabbed_unit, turn, check, board_set, move_y):
+    bg = pg.Rect(0, move_y, WIDTH, HEIGHT)
+    pg.draw.rect(SCREEN, (0, 150, 150), bg)
+    draw_board(OFFSET_X, OFFSET_Y, grid_size, cell_size, move_y)
     if "W" in turn:
         colour = WHITE
     else:
         colour = BLACK
     title_text = NORMAL_DEFAULT_FONT.render(f"{turn}'s Turn!", 1, colour)
-    SCREEN.blit(title_text, (WIDTH//2 - title_text.get_width()//2, -5))
+    SCREEN.blit(title_text, (WIDTH//2 - title_text.get_width()//2, -5 + move_y))
 
     if "W" in check[0]:
         check_text1 = BIG_DEFAULT_FONT.render("CHECK! PANIC!", 1, BLUE)
         check_text1 = pg.transform.rotate(check_text1, pg.time.get_ticks()//2)
-        SCREEN.blit(check_text1, (WIDTH//2 - check_text1.get_width()//2, HEIGHT//2 - check_text1.get_height()//2))
+        SCREEN.blit(check_text1, (WIDTH//2 - check_text1.get_width()//2, HEIGHT//2 - check_text1.get_height()//2 + move_y))
     if "B" in check[1]:
         check_text2 = BIG_DEFAULT_FONT.render("CHECK! PANIC!", 1, RED)
         check_text2 = pg.transform.rotate(check_text2, pg.time.get_ticks()//-2)
-        SCREEN.blit(check_text2, (WIDTH//2 - check_text2.get_width()//2, HEIGHT//2 - check_text2.get_height()//2))
+        SCREEN.blit(check_text2, (WIDTH//2 - check_text2.get_width()//2, HEIGHT//2 - check_text2.get_height()//2 + move_y))
 
     if grabbed_unit != "":
         mouse_pos = pg.mouse.get_pos()
         if grabbed_unit == "BP":
-            SCREEN.blit(BLACK_PAWN, (mouse_pos[0]-(BLACK_PAWN.get_width()//2), mouse_pos[1]-(BLACK_PAWN.get_height()//2)))
+            SCREEN.blit(BLACK_PAWN, (mouse_pos[0]-(BLACK_PAWN.get_width()//2), mouse_pos[1]-(BLACK_PAWN.get_height()//2) + move_y))
         elif grabbed_unit == "BK":
-            SCREEN.blit(BLACK_KNIGHT_IMAGE, (mouse_pos[0]-(BLACK_KNIGHT_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_KNIGHT_IMAGE.get_height()//2)))
+            SCREEN.blit(BLACK_KNIGHT_IMAGE, (mouse_pos[0]-(BLACK_KNIGHT_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_KNIGHT_IMAGE.get_height()//2) + move_y))
         elif grabbed_unit == "BR":
-            SCREEN.blit(BLACK_ROOK_IMAGE, (mouse_pos[0]-(BLACK_ROOK_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_ROOK_IMAGE.get_height()//2)))
+            SCREEN.blit(BLACK_ROOK_IMAGE, (mouse_pos[0]-(BLACK_ROOK_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_ROOK_IMAGE.get_height()//2) + move_y))
         elif grabbed_unit == "BF":
-            SCREEN.blit(BLACK_BISHOP_IMAGE, (mouse_pos[0]-(BLACK_BISHOP_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_BISHOP_IMAGE.get_height()//2)))
+            SCREEN.blit(BLACK_BISHOP_IMAGE, (mouse_pos[0]-(BLACK_BISHOP_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_BISHOP_IMAGE.get_height()//2) + move_y))
         elif grabbed_unit == "BQ":
-            SCREEN.blit(BLACK_QUEEN_IMAGE, (mouse_pos[0]-(BLACK_QUEEN_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_QUEEN_IMAGE.get_height()//2)))
+            SCREEN.blit(BLACK_QUEEN_IMAGE, (mouse_pos[0]-(BLACK_QUEEN_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_QUEEN_IMAGE.get_height()//2) + move_y))
         elif grabbed_unit == "BG":
-            SCREEN.blit(BLACK_KING_IMAGE, (mouse_pos[0]-(BLACK_KING_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_KING_IMAGE.get_height()//2)))
+            SCREEN.blit(BLACK_KING_IMAGE, (mouse_pos[0]-(BLACK_KING_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_KING_IMAGE.get_height()//2) + move_y))
         elif grabbed_unit == "WP":
-            SCREEN.blit(WHITE_PAWN, (mouse_pos[0]-(WHITE_PAWN.get_width()//2), mouse_pos[1]-(WHITE_PAWN.get_height()//2)))
+            SCREEN.blit(WHITE_PAWN, (mouse_pos[0]-(WHITE_PAWN.get_width()//2), mouse_pos[1]-(WHITE_PAWN.get_height()//2) + move_y))
         elif grabbed_unit == "WK":
-            SCREEN.blit(WHITE_KNIGHT_IMAGE, (mouse_pos[0]-(WHITE_KNIGHT_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_KNIGHT_IMAGE.get_height()//2)))
+            SCREEN.blit(WHITE_KNIGHT_IMAGE, (mouse_pos[0]-(WHITE_KNIGHT_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_KNIGHT_IMAGE.get_height()//2) + move_y))
         elif grabbed_unit == "WR":
-            SCREEN.blit(WHITE_ROOK_IMAGE, (mouse_pos[0]-(WHITE_ROOK_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_ROOK_IMAGE.get_height()//2)))
+            SCREEN.blit(WHITE_ROOK_IMAGE, (mouse_pos[0]-(WHITE_ROOK_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_ROOK_IMAGE.get_height()//2) + move_y))
         elif grabbed_unit == "WF":
-            SCREEN.blit(WHITE_BISHOP_IMAGE, (mouse_pos[0]-(WHITE_BISHOP_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_BISHOP_IMAGE.get_height()//2)))
+            SCREEN.blit(WHITE_BISHOP_IMAGE, (mouse_pos[0]-(WHITE_BISHOP_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_BISHOP_IMAGE.get_height()//2) + move_y))
         elif grabbed_unit == "WQ":
-            SCREEN.blit(WHITE_QUEEN_IMAGE, (mouse_pos[0]-(WHITE_QUEEN_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_QUEEN_IMAGE.get_height()//2)))
+            SCREEN.blit(WHITE_QUEEN_IMAGE, (mouse_pos[0]-(WHITE_QUEEN_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_QUEEN_IMAGE.get_height()//2) + move_y))
         elif grabbed_unit == "WG":
-            SCREEN.blit(WHITE_KING_IMAGE, (mouse_pos[0]-(WHITE_KING_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_KING_IMAGE.get_height()//2)))
+            SCREEN.blit(WHITE_KING_IMAGE, (mouse_pos[0]-(WHITE_KING_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_KING_IMAGE.get_height()//2) + move_y))
+
     if show_debug:
         draw_debug()
     draw_console()
     pg.display.update()
 
 
-def draw_board(offset_x, offset_y, grid_size, cell_size):
+def draw_board(offset_x, offset_y, grid_size, cell_size, m_y):
     move_y = offset_y
     colour = WHITE
     for cell_y in range(grid_size):
         move_x = offset_x
         for cell_x in range(grid_size):
-            cell = pg.Rect(move_x, move_y, cell_size, cell_size)
+            cell = pg.Rect(move_x, move_y + m_y, cell_size, cell_size)
             pg.draw.rect(SCREEN, colour, cell)
             if "BP" in grid[cell_y][cell_x]:
-                SCREEN.blit(BLACK_PAWN, (move_x, move_y))
+                SCREEN.blit(BLACK_PAWN, (move_x, move_y + m_y))
             if "BK" in grid[cell_y][cell_x]:
-                SCREEN.blit(BLACK_KNIGHT_IMAGE, (move_x, move_y))
+                SCREEN.blit(BLACK_KNIGHT_IMAGE, (move_x, move_y + m_y))
             if "BR" in grid[cell_y][cell_x]:
-                SCREEN.blit(BLACK_ROOK_IMAGE, (move_x, move_y))
+                SCREEN.blit(BLACK_ROOK_IMAGE, (move_x, move_y + m_y))
             if "BF" in grid[cell_y][cell_x]:
-                SCREEN.blit(BLACK_BISHOP_IMAGE, (move_x, move_y))
+                SCREEN.blit(BLACK_BISHOP_IMAGE, (move_x, move_y + m_y))
             if "BQ" in grid[cell_y][cell_x]:
-                SCREEN.blit(BLACK_QUEEN_IMAGE, (move_x, move_y))
+                SCREEN.blit(BLACK_QUEEN_IMAGE, (move_x, move_y + m_y))
             if "BG" in grid[cell_y][cell_x]:
-                SCREEN.blit(BLACK_KING_IMAGE, (move_x, move_y))
+                SCREEN.blit(BLACK_KING_IMAGE, (move_x, move_y + m_y))
                 if "X" in grid[cell_y][cell_x]:
                     pg.draw.circle(SCREEN, RED, (move_x + (cell_size//2), move_y + (cell_size//2)), cell_size//3, 5)
                     pg.event.post(BLACK_CHECK_EVENT)
                 else:
                     pg.event.post(NO_BLACK_CHECK_EVENT)
             if "WP" in grid[cell_y][cell_x]:
-                SCREEN.blit(WHITE_PAWN, (move_x, move_y))
+                SCREEN.blit(WHITE_PAWN, (move_x, move_y + m_y))
             if "WK" in grid[cell_y][cell_x]:
-                SCREEN.blit(WHITE_KNIGHT_IMAGE, (move_x, move_y))
+                SCREEN.blit(WHITE_KNIGHT_IMAGE, (move_x, move_y + m_y))
             if "WR" in grid[cell_y][cell_x]:
-                SCREEN.blit(WHITE_ROOK_IMAGE, (move_x, move_y))
+                SCREEN.blit(WHITE_ROOK_IMAGE, (move_x, move_y + m_y))
             if "WF" in grid[cell_y][cell_x]:
-                SCREEN.blit(WHITE_BISHOP_IMAGE, (move_x, move_y))
+                SCREEN.blit(WHITE_BISHOP_IMAGE, (move_x, move_y + m_y))
             if "WQ" in grid[cell_y][cell_x]:
-                SCREEN.blit(WHITE_QUEEN_IMAGE, (move_x, move_y))
+                SCREEN.blit(WHITE_QUEEN_IMAGE, (move_x, move_y + m_y))
             if "WG" in grid[cell_y][cell_x]:
-                SCREEN.blit(WHITE_KING_IMAGE, (move_x, move_y))
+                SCREEN.blit(WHITE_KING_IMAGE, (move_x, move_y + m_y))
                 if "X" in grid[cell_y][cell_x]:
                     pg.draw.circle(SCREEN, RED, (move_x + (cell_size//2), move_y + (cell_size//2)), cell_size//3, 5)
                     pg.event.post(WHITE_CHECK_EVENT)
@@ -693,7 +702,7 @@ def draw_board(offset_x, offset_y, grid_size, cell_size):
             colour = WHITE
 
 
-#Draw the title screem
+#Draw the title screen
 def draw_title(play_button):
     SCREEN.fill((0, 150, 150))
     title_text = BIG_DEFAULT_FONT.render("CHESS!!! PLAY NOW!", 1, WHITE)
@@ -705,6 +714,58 @@ def draw_title(play_button):
         draw_debug()
     draw_console()
     pg.display.update()
+
+
+def draw_retry_screen(move_y, retry_button, winner):
+    bg = pg.Rect(0, move_y, WIDTH, HEIGHT)
+    pg.draw.rect(SCREEN, (0, 150, 150), bg)
+
+    title_text = BIG_DEFAULT_FONT.render(f"{winner} won! Replay?", 1, WHITE)
+    SCREEN.blit(title_text, ((WIDTH//2 - title_text.get_width()//2, 75 + move_y)))
+    pg.draw.rect(SCREEN, WHITE, retry_button)
+    play_text = NORMAL_DEFAULT_FONT.render("PLAY CHESS", 1, BLACK)
+    SCREEN.blit(play_text, (WIDTH//2 - play_text.get_width()//2, retry_button.y + 20))
+
+    pg.display.update()
+
+
+def retry_screen(winner):
+    move_y = HEIGHT * -1
+    retry_button_bounds = [(WIDTH//2 - 150, WIDTH//2 - 150 + 300), (300, 400)]
+
+    pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
+
+    button_set = False
+    clock = pg.time.Clock()
+    run = True
+    while run:
+        clock.tick(FPS)
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                run = False
+                pg.display.quit()
+            
+            if event.type == REPEAT_SOUND:
+                SOUNDTRACK.play()
+            
+            if event.type == pg.MOUSEBUTTONDOWN:
+                mouse = pg.mouse.get_pressed()
+                mouse_pos = pg.mouse.get_pos()
+                if mouse[0] and ((mouse_pos[0] >=retry_button_bounds[0][0] and mouse_pos[0] <=retry_button_bounds[0][1]) and (mouse_pos[1] >=retry_button_bounds[1][0] and mouse_pos[1] <=retry_button_bounds[1][1])):
+                    if button_set:
+                        run = False
+                        break
+    
+        if move_y < 0:
+            move_y = clamp(move_y + 5, HEIGHT * -1, 0)
+        else:
+            button_set = True
+        
+        retry_button = pg.Rect(WIDTH//2 - 150, 300 + move_y, 300, 100)
+
+        draw_retry_screen(move_y, retry_button, winner)
+
+    main()
 
 
 #Title screen loop
@@ -761,14 +822,18 @@ def title():
             handle_debugs("O")
         
         draw_title(play_button)
+
     main()
 
 #Main game loop
 def main():
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
     clock = pg.time.Clock()
+    move_y = HEIGHT * -1
+    board_set = False
     run = True
     turn = "White"
+    winner = "Jester"
     console = False
     check = ["", ""]
     global console_text
@@ -786,50 +851,61 @@ def main():
             
             if event.type == REPEAT_SOUND:
                 SOUNDTRACK.play()
-            
-            if event.type == pg.USEREVENT:
-                if event.MyOwnType == ON_WHITE_CHECK:
-                    check[0] = "White"
-                if event.MyOwnType == ON_BLACK_CHECK:
-                    check[1] = "Black"
-                if event.MyOwnType == ON_NO_WHITE_CHECK:
-                    check[0] = ""
-                if event.MyOwnType == ON_NO_BLACK_CHECK:
-                    check[1] = ""
-            
-            if event.type == pg.MOUSEBUTTONDOWN:
-                mouse = pg.mouse.get_pressed()
-                if mouse[0]:
-                    mouse_pos = pg.mouse.get_pos()
-                    get_tile(mouse_pos[0], mouse_pos[1], OFFSET_X, OFFSET_Y)
-                    if grabbed == "":
-                        if not turn[:1] in grid[grid_y][grid_x]:
-                            continue
-                        old_grid[grid_y][grid_x] = grid[grid_y][grid_x]
-                        grabbed = grid[grid_y][grid_x].replace("O", "")
-                        grabbed_pos[0] = grid_y
-                        grabbed_pos[1] = grid_x
-                        find_pos(grabbed, grabbed_pos)
-                        grid[grid_y][grid_x] = ""
-                    else:
-                        if "O" in grid[grid_y][grid_x]:
-                            remove_pos(grabbed, grabbed_pos)
-                            if "WP" in grabbed and grid_y == 0:
-                                grabbed = "WQ"
-                            if "BP" in grabbed and grid_y == 7:
-                                grabbed = "BQ"
-                            grid[grid_y][grid_x] = grabbed
-                            check_check()
-                            grabbed = ""
-                            if "W" in turn:
-                                turn = "Black"
-                            else:
-                                turn = "White"
-
+                
+            if board_set:
+                if event.type == pg.USEREVENT:
+                    if event.MyOwnType == ON_WHITE_CHECK:
+                        check[0] = "White"
+                    if event.MyOwnType == ON_BLACK_CHECK:
+                        check[1] = "Black"
+                    if event.MyOwnType == ON_NO_WHITE_CHECK:
+                        check[0] = ""
+                    if event.MyOwnType == ON_NO_BLACK_CHECK:
+                        check[1] = ""
+                
+                if event.type == pg.USEREVENT + 1:
+                    if event.MyOwnType == ON_RETRY:
+                        run = False
+                
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    mouse = pg.mouse.get_pressed()
+                    if mouse[0]:
+                        mouse_pos = pg.mouse.get_pos()
+                        get_tile(mouse_pos[0], mouse_pos[1], OFFSET_X, OFFSET_Y)
+                        if grabbed == "":
+                            if not turn[:1] in grid[grid_y][grid_x]:
+                                continue
+                            old_grid[grid_y][grid_x] = grid[grid_y][grid_x]
+                            grabbed = grid[grid_y][grid_x].replace("O", "")
+                            grabbed_pos[0] = grid_y
+                            grabbed_pos[1] = grid_x
+                            find_pos(grabbed, grabbed_pos)
+                            grid[grid_y][grid_x] = ""
                         else:
-                            grid[grabbed_pos[0]][grabbed_pos[1]] = old_grid[grabbed_pos[0]][grabbed_pos[1]]
-                            remove_pos(grabbed, grabbed_pos)
-                            grabbed = ""
+                            if "O" in grid[grid_y][grid_x]:
+                                remove_pos(grabbed, grabbed_pos)
+                                if "WP" in grabbed and grid_y == 0:
+                                    grabbed = "WQ"
+                                if "BP" in grabbed and grid_y == 7:
+                                    grabbed = "BQ"
+                                if "G" in grid[grid_y][grid_x]:
+                                    if "W" in grid[grid_y][grid_x]:
+                                        winner = "Black"
+                                    if "B" in grid[grid_y][grid_x]:
+                                        winner = "White"
+                                    run = False
+                                grid[grid_y][grid_x] = grabbed
+                                check_check()
+                                grabbed = ""
+                                if "W" in turn:
+                                    turn = "Black"
+                                else:
+                                    turn = "White"
+
+                            else:
+                                grid[grabbed_pos[0]][grabbed_pos[1]] = old_grid[grabbed_pos[0]][grabbed_pos[1]]
+                                remove_pos(grabbed, grabbed_pos)
+                                grabbed = ""
 
             if event.type == pg.KEYDOWN:
                 if console:
@@ -854,9 +930,14 @@ def main():
         if show_debug:
             handle_debugs(grabbed)
         
-        draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check)
+        if move_y < 0:
+            move_y = clamp(move_y + 5, HEIGHT * -1, 0)
+        else:
+            board_set = True
+        
+        draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check, board_set, move_y)
 
-    title()
+    retry_screen(winner)
 
 
 if __name__ == "__main__":
