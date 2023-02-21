@@ -7,6 +7,7 @@ pg.mixer.init()
 pg.font.init()
 pg.init()
 pg.display.set_caption("WOOOO CHESS!")
+pack = "Default"
 
 #Const Var Inits
 WIDTH, HEIGHT = 900, 700
@@ -54,8 +55,10 @@ NORMAL_DEFAULT_FONT = pg.font.SysFont('comicsans', 40)
 SMALL_DEFAULT_FONT = pg.font.SysFont("comicsans", 20)
 
 #Sounds
-SOUNDTRACK = pg.mixer.Sound(os.path.join('Music', 'Space Jazz.wav'))
+SOUNDTRACK = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Match.wav'))
 SOUNDTRACK.set_volume(.5)
+GAME_END = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Game_End.wav'))
+GAME_END.set_volume(.5)
 
 #Colours
 WHITE = (255, 255, 255)
@@ -65,20 +68,20 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
 #Black Unit images
-BLACK_PAWN = pg.image.load(os.path.join("Assets", "Black Pawn.svg"))
-BLACK_KNIGHT_IMAGE = pg.image.load(os.path.join("Assets", "Black Knight.svg"))
-BLACK_ROOK_IMAGE = pg.image.load(os.path.join("Assets", "Black Rook.svg"))
-BLACK_BISHOP_IMAGE = pg.image.load(os.path.join("Assets", "Black Bishop.svg"))
-BLACK_QUEEN_IMAGE = pg.image.load(os.path.join("Assets", "Black Queen.svg"))
-BLACK_KING_IMAGE = pg.image.load(os.path.join("Assets", "Black King.svg"))
+BLACK_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "Black Pawn.svg"))
+BLACK_KNIGHT_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Knight.svg"))
+BLACK_ROOK_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Rook.svg"))
+BLACK_BISHOP_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Bishop.svg"))
+BLACK_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Queen.svg"))
+BLACK_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black King.svg"))
 
 #White Unit Images
-WHITE_PAWN = pg.image.load(os.path.join("Assets", "White Pawn.svg"))
-WHITE_KNIGHT_IMAGE = pg.image.load(os.path.join("Assets", "White Knight.svg"))
-WHITE_ROOK_IMAGE = pg.image.load(os.path.join("Assets", "White Rook.svg"))
-WHITE_BISHOP_IMAGE = pg.image.load(os.path.join("Assets", "White Bishop.svg"))
-WHITE_QUEEN_IMAGE = pg.image.load(os.path.join("Assets", "White Queen.svg"))
-WHITE_KING_IMAGE = pg.image.load(os.path.join("Assets", "White King.svg"))
+WHITE_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "White Pawn.svg"))
+WHITE_KNIGHT_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Knight.svg"))
+WHITE_ROOK_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Rook.svg"))
+WHITE_BISHOP_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Bishop.svg"))
+WHITE_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Queen.svg"))
+WHITE_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White King.svg"))
 
 #Global Vars
 grid = [
@@ -109,6 +112,8 @@ tile = ""
 console_text = ''
 command = ''
 show_debug = False
+debug_message = []
+debug_time = []
 debugs = [
     "Mouse Pos: ",
     "Grid Pos: ",
@@ -204,6 +209,12 @@ def handle_commands():
                 ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
                 ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"]
             ]
+    elif "pack" in command:
+        args = command.split()
+        if args[1] == "list":
+            debug_message.append(os.listdir("Assets"))
+            debug_time.append(pg.time.get_ticks())
+
     elif "set" in command:
         args = command.split()
         if args[0] == "set_volume":
@@ -580,6 +591,15 @@ def draw_debug():
         SCREEN.blit(draw_debug, (0, y))
         y += 20
 
+def draw_debug_message():
+    y = HEIGHT - 40
+    for i in debug_message:
+        y -= 20
+    for debug in debug_message:
+        draw_debug = SMALL_DEFAULT_FONT.render(str(debug), 1, GREEN)
+        SCREEN.blit(draw_debug, (0, y))
+        y += 20
+
 
 def draw_console():
     text = SMALL_DEFAULT_FONT.render(console_text, 1, GREEN)
@@ -637,6 +657,7 @@ def draw_screen(grid_size, cell_size, grabbed_unit, turn, check, board_set, move
 
     if show_debug:
         draw_debug()
+    draw_debug_message()
     draw_console()
     pg.display.update()
 
@@ -729,14 +750,14 @@ def draw_retry_screen(move_y, retry_button, winner):
 
 
 def retry_screen(winner):
+    SOUNDTRACK.stop()
     move_y = HEIGHT * -1
     retry_button_bounds = [(WIDTH//2 - 150, WIDTH//2 - 150 + 300), (300, 400)]
-
-    pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
 
     button_set = False
     clock = pg.time.Clock()
     run = True
+    GAME_END.play()
     while run:
         clock.tick(FPS)
         for event in pg.event.get():
@@ -756,7 +777,7 @@ def retry_screen(winner):
                         break
     
         if move_y < 0:
-            move_y = clamp(move_y + 5, HEIGHT * -1, 0)
+            move_y = clamp(move_y + 10, HEIGHT * -1, 0)
         else:
             button_set = True
         
@@ -826,6 +847,7 @@ def title():
 
 #Main game loop
 def main():
+    GAME_END.stop()
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
     clock = pg.time.Clock()
     move_y = HEIGHT * -1
@@ -904,6 +926,7 @@ def main():
                             else:
                                 grid[grabbed_pos[0]][grabbed_pos[1]] = old_grid[grabbed_pos[0]][grabbed_pos[1]]
                                 remove_pos(grabbed, grabbed_pos)
+                                check_check()
                                 grabbed = ""
 
             if event.type == pg.KEYDOWN:
@@ -930,12 +953,18 @@ def main():
             handle_debugs(grabbed)
         
         if move_y < 0:
-            move_y = clamp(move_y + 5, HEIGHT * -1, 0)
+            move_y = clamp(move_y + 10, HEIGHT * -1, 0)
         else:
             board_set = True
         
+        for debug in range(len(debug_message)):
+            if pg.time.get_ticks() - debug_time[debug] >= 5000:
+                debug_message.pop(debug-1)
+                debug_time.pop(debug-1)
+        
         draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check, board_set, move_y)
 
+    pg.time.wait(500)
     retry_screen(winner)
 
 
