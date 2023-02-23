@@ -262,6 +262,9 @@ def handle_commands():
             debug_message.append(pack)
             debug_time.append(pg.time.get_ticks())
         if args[1] == "set":
+            debug_message.append("Reloading all assets. This will take a moment.")
+            debug_time.append(pg.time.get_ticks())
+            draw_debug_message()
             pack = args[2]
             reload_assets()
 
