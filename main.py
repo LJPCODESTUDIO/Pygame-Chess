@@ -10,8 +10,10 @@ pg.display.set_caption("WOOOO CHESS!")
 pack = "Default"
 
 #Const Var Inits
-WIDTH, HEIGHT = 900, 700
-SCREEN = pg.display.set_mode((WIDTH, HEIGHT))
+
+WIDTH = 900
+HEIGHT = 700
+SCREEN = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE)
 GRID_SIZE = 8
 CELL_SIZE = 80
 OFFSET_X = WIDTH//2-(GRID_SIZE*CELL_SIZE//2)
@@ -60,13 +62,6 @@ SOUNDTRACK.set_volume(.5)
 GAME_END = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Game_End.wav'))
 GAME_END.set_volume(.5)
 
-#Colours
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-
 #Black Unit images
 BLACK_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "Black Pawn.svg"))
 BLACK_KNIGHT_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Knight.svg"))
@@ -82,6 +77,13 @@ WHITE_ROOK_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Rook.svg"
 WHITE_BISHOP_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Bishop.svg"))
 WHITE_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Queen.svg"))
 WHITE_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White King.svg"))
+
+#Colours
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
 
 #Global Vars
 grid = [
@@ -123,6 +125,45 @@ debugs = [
     "Volume: "
 ]
 
+
+def reload_assets():
+    global SOUNDTRACK
+    global GAME_END
+    global BLACK_PAWN
+    global BLACK_KNIGHT_IMAGE
+    global BLACK_ROOK_IMAGE
+    global BLACK_BISHOP_IMAGE
+    global BLACK_QUEEN_IMAGE
+    global BLACK_KING_IMAGE
+    global WHITE_PAWN
+    global WHITE_KNIGHT_IMAGE
+    global WHITE_ROOK_IMAGE
+    global WHITE_BISHOP_IMAGE
+    global WHITE_QUEEN_IMAGE
+    global WHITE_KING_IMAGE
+    #Sounds
+    SOUNDTRACK = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Match.wav'))
+    SOUNDTRACK.set_volume(.5)
+    GAME_END = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Game_End.wav'))
+    GAME_END.set_volume(.5)
+
+    #Black Unit images
+    BLACK_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "Black Pawn.svg"))
+    BLACK_KNIGHT_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Knight.svg"))
+    BLACK_ROOK_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Rook.svg"))
+    BLACK_BISHOP_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Bishop.svg"))
+    BLACK_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Queen.svg"))
+    BLACK_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black King.svg"))
+
+    #White Unit Images
+    WHITE_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "White Pawn.svg"))
+    WHITE_KNIGHT_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Knight.svg"))
+    WHITE_ROOK_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Rook.svg"))
+    WHITE_BISHOP_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Bishop.svg"))
+    WHITE_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Queen.svg"))
+    WHITE_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White King.svg"))
+
+
 #Custom clamp function to keep grid index in range
 def clamp(val, min, max):
     if val > max:
@@ -154,6 +195,7 @@ def handle_commands():
         show_debug = True
     elif command == "retry":
         pg.event.post(RETRY)
+
     elif command == "clear":
         grid = [
                 ["", "", "", "", "", "", "", ""],
@@ -209,16 +251,25 @@ def handle_commands():
                 ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
                 ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"]
             ]
+
     elif "pack" in command:
         args = command.split()
+        global pack
         if args[1] == "list":
             debug_message.append(os.listdir("Assets"))
             debug_time.append(pg.time.get_ticks())
+        if args[1] == "current":
+            debug_message.append(pack)
+            debug_time.append(pg.time.get_ticks())
+        if args[1] == "set":
+            pack = args[2]
+            reload_assets()
 
     elif "set" in command:
         args = command.split()
         if args[0] == "set_volume":
             SOUNDTRACK.set_volume(float(args[1]))
+
     elif "spawn" in command:
         global grabbed
         global grabbed_pos
@@ -750,6 +801,8 @@ def draw_retry_screen(move_y, retry_button, winner):
 
 
 def retry_screen(winner):
+    global WIDTH
+    global HEIGHT
     SOUNDTRACK.stop()
     move_y = HEIGHT * -1
     retry_button_bounds = [(WIDTH//2 - 150, WIDTH//2 - 150 + 300), (300, 400)]
@@ -759,6 +812,7 @@ def retry_screen(winner):
     run = True
     GAME_END.play()
     while run:
+        WIDTH, HEIGHT = SCREEN.get_size()
         clock.tick(FPS)
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -790,8 +844,8 @@ def retry_screen(winner):
 
 #Title screen loop
 def title():
-    play_button = pg.Rect(WIDTH//2 - 150, 300, 300, 100)
-    play_bounds = [(WIDTH//2 - 150, WIDTH//2 - 150 + 300), (300, 400)]
+    global WIDTH
+    global HEIGHT
 
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
     
@@ -802,6 +856,9 @@ def title():
     global command
     SOUNDTRACK.play()
     while run:
+        WIDTH, HEIGHT = SCREEN.get_size()
+        play_button = pg.Rect(WIDTH//2 - 150, 300, 300, 100)
+        play_bounds = [(WIDTH//2 - 150, WIDTH//2 - 150 + 300), (300, 400)]
         clock.tick(FPS)
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -847,6 +904,10 @@ def title():
 
 #Main game loop
 def main():
+    global WIDTH
+    global HEIGHT
+    global OFFSET_X
+    global OFFSET_Y
     GAME_END.stop()
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
     clock = pg.time.Clock()
@@ -864,6 +925,9 @@ def main():
     global grabbed
     global grabbed_pos
     while run:
+        WIDTH, HEIGHT = SCREEN.get_size()
+        OFFSET_X = WIDTH//2-(GRID_SIZE*CELL_SIZE//2)
+        OFFSET_Y = HEIGHT//2-(GRID_SIZE*CELL_SIZE//2)+20
         clock.tick(FPS)
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -916,7 +980,7 @@ def main():
                                         winner = "White"
                                     run = False
                                 grid[grid_y][grid_x] = grabbed
-                                check_check()
+                                remove_pos(grabbed, grabbed_pos)
                                 grabbed = ""
                                 if "W" in turn:
                                     turn = "Black"
@@ -926,7 +990,6 @@ def main():
                             else:
                                 grid[grabbed_pos[0]][grabbed_pos[1]] = old_grid[grabbed_pos[0]][grabbed_pos[1]]
                                 remove_pos(grabbed, grabbed_pos)
-                                check_check()
                                 grabbed = ""
 
             if event.type == pg.KEYDOWN:
@@ -958,10 +1021,11 @@ def main():
             board_set = True
         
         for debug in range(len(debug_message)):
-            if pg.time.get_ticks() - debug_time[debug] >= 5000:
+            if pg.time.get_ticks() - debug_time[debug-1] >= 5000:
                 debug_message.pop(debug-1)
                 debug_time.pop(debug-1)
         
+        check_check()
         draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check, board_set, move_y)
 
     pg.time.wait(500)
