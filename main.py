@@ -254,7 +254,11 @@ def handle_commands():
 
     elif "pack" in command:
         args = command.split()
+        args.append(None)
         global pack
+        if args[1] == None:
+                debug_message.append("Missing argument (1).")
+                debug_time.append(pg.time.get_ticks())
         if args[1] == "list":
             debug_message.append(os.listdir("Assets"))
             debug_time.append(pg.time.get_ticks())
@@ -262,15 +266,26 @@ def handle_commands():
             debug_message.append(pack)
             debug_time.append(pg.time.get_ticks())
         if args[1] == "set":
-            debug_message.append("Reloading all assets. This will take a moment.")
-            debug_time.append(pg.time.get_ticks())
+            if args[2] == None:
+                debug_message.append("Missing argument (2).")
+                debug_time.append(pg.time.get_ticks())
+                return
             draw_debug_message()
-            pack = args[2]
-            reload_assets()
+            if args[2] in os.listdir("Assets"):
+                pack = args[2]
+                reload_assets()
+                debug_message.append(f"Resource Pack set to {pack}")
+                debug_time.append(pg.time.get_ticks())
+                return
+            debug_message.append(f"Pack {args[2]} not in Assets folder.")
+            debug_time.append(pg.time.get_ticks())
 
     elif "set" in command:
         args = command.split()
         if args[0] == "set_volume":
+            if args[1] == None:
+                debug_message.append("Missing argument (1).")
+                debug_time.append(pg.time.get_ticks())
             SOUNDTRACK.set_volume(float(args[1]))
 
     elif "spawn" in command:
@@ -786,6 +801,7 @@ def draw_title(play_button):
     SCREEN.blit(play_text, (WIDTH//2 - play_text.get_width()//2, play_button.y + 20))
     if show_debug:
         draw_debug()
+    draw_debug_message()
     draw_console()
     pg.display.update()
 
@@ -800,6 +816,10 @@ def draw_retry_screen(move_y, retry_button, winner):
     play_text = NORMAL_DEFAULT_FONT.render("PLAY CHESS", 1, BLACK)
     SCREEN.blit(play_text, (WIDTH//2 - play_text.get_width()//2, retry_button.y + 20))
 
+    if show_debug:
+        draw_debug()
+    draw_debug_message()
+    draw_console()
     pg.display.update()
 
 
@@ -832,6 +852,26 @@ def retry_screen(winner):
                     if button_set:
                         run = False
                         break
+            
+            if event.type == pg.KEYDOWN:
+                if console:
+                    if event.key == pg.K_BACKSPACE:
+                        if len(command)>0:
+                            command = command[:-1]
+                    elif event.key == pg.K_RETURN:
+                        console = False
+                        handle_commands()
+                        console_text = ''
+                        command = ''
+                        continue
+                    else:
+                        command += event.unicode
+                    
+                    console_text = '>' + command
+            
+                if event.key == pg.K_F1 or event.key == pg.K_SLASH:
+                        console = True
+                        console_text = '>' + command
     
         if move_y < 0:
             move_y = clamp(move_y + 10, HEIGHT * -1, 0)
@@ -840,6 +880,8 @@ def retry_screen(winner):
         
         retry_button = pg.Rect(WIDTH//2 - 150, 300 + move_y, 300, 100)
 
+        if show_debug:
+            handle_debugs("O")
         draw_retry_screen(move_y, retry_button, winner)
 
     main()
@@ -894,7 +936,7 @@ def title():
                     
                     console_text = '>' + command
             
-                if event.key == pg.K_F1:
+                if event.key == pg.K_F1 or event.key == pg.K_SLASH:
                         console = True
                         console_text = '>' + command
         
@@ -984,6 +1026,7 @@ def main():
                                     run = False
                                 grid[grid_y][grid_x] = grabbed
                                 remove_pos(grabbed, grabbed_pos)
+                                check_check()
                                 grabbed = ""
                                 if "W" in turn:
                                     turn = "Black"
@@ -993,6 +1036,7 @@ def main():
                             else:
                                 grid[grabbed_pos[0]][grabbed_pos[1]] = old_grid[grabbed_pos[0]][grabbed_pos[1]]
                                 remove_pos(grabbed, grabbed_pos)
+                                check_check()
                                 grabbed = ""
 
             if event.type == pg.KEYDOWN:
@@ -1011,7 +1055,7 @@ def main():
                     
                     console_text = '>' + command
             
-                if event.key == pg.K_F1:
+                if event.key == pg.K_F1 or event.key == pg.K_SLASH:
                         console = True
                         console_text = '>' + command
 
@@ -1027,8 +1071,7 @@ def main():
             if pg.time.get_ticks() - debug_time[debug-1] >= 5000:
                 debug_message.pop(debug-1)
                 debug_time.pop(debug-1)
-        
-        check_check()
+
         draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check, board_set, move_y)
 
     pg.time.wait(500)
