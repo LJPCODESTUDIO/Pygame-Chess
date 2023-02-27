@@ -2,6 +2,7 @@ import pygame as pg
 import math
 import os
 
+
 #Init stuffs
 pg.mixer.init()
 pg.font.init()
@@ -9,7 +10,9 @@ pg.init()
 pg.display.set_caption("WOOOO CHESS!")
 pack = "Default"
 
+
 #Const Var Inits
+
 
 WIDTH = 900
 HEIGHT = 700
@@ -19,7 +22,9 @@ CELL_SIZE = 80
 OFFSET_X = WIDTH//2-(GRID_SIZE*CELL_SIZE//2)
 OFFSET_Y = HEIGHT//2-(GRID_SIZE*CELL_SIZE//2)+20
 
+
 FPS = 60
+
 
 #Move Dictionaries
 BLACK_MOVES = {"Pawn":[(1, 0)]}
@@ -33,6 +38,8 @@ MOVES = {
     }
 
 
+
+
 #Custom Event ID's
 ON_WHITE_CHECK = 1
 ON_BLACK_CHECK = 2
@@ -40,6 +47,7 @@ ON_NO_WHITE_CHECK = 3
 ON_NO_BLACK_CHECK = 4
 #Command Events
 ON_RETRY = 1
+
 
 #Events
 REPEAT_SOUND = pg.USEREVENT + 1
@@ -51,16 +59,19 @@ NO_BLACK_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=ON_NO_BLACK_CHECK)
 #Command Events
 RETRY = pg.event.Event(pg.USEREVENT + 1, MyOwnType=ON_RETRY)
 
+
 #Fonts
 BIG_DEFAULT_FONT = pg.font.SysFont('comicsans', 80)
 NORMAL_DEFAULT_FONT = pg.font.SysFont('comicsans', 40)
 SMALL_DEFAULT_FONT = pg.font.SysFont("comicsans", 20)
+
 
 #Sounds
 SOUNDTRACK = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Match.wav'))
 SOUNDTRACK.set_volume(.5)
 GAME_END = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Game_End.wav'))
 GAME_END.set_volume(.5)
+
 
 #Black Unit images
 BLACK_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "Black Pawn.svg"))
@@ -70,6 +81,7 @@ BLACK_BISHOP_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Bishop.
 BLACK_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Queen.svg"))
 BLACK_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black King.svg"))
 
+
 #White Unit Images
 WHITE_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "White Pawn.svg"))
 WHITE_KNIGHT_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Knight.svg"))
@@ -78,12 +90,14 @@ WHITE_BISHOP_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Bishop.
 WHITE_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Queen.svg"))
 WHITE_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White King.svg"))
 
+
 #Colours
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
+
 
 #Global Vars
 grid = [
@@ -126,6 +140,8 @@ debugs = [
 ]
 
 
+
+
 def reload_assets():
     global SOUNDTRACK
     global GAME_END
@@ -147,6 +163,7 @@ def reload_assets():
     GAME_END = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Game_End.wav'))
     GAME_END.set_volume(.5)
 
+
     #Black Unit images
     BLACK_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "Black Pawn.svg"))
     BLACK_KNIGHT_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Knight.svg"))
@@ -155,6 +172,7 @@ def reload_assets():
     BLACK_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Queen.svg"))
     BLACK_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black King.svg"))
 
+
     #White Unit Images
     WHITE_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "White Pawn.svg"))
     WHITE_KNIGHT_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Knight.svg"))
@@ -162,6 +180,8 @@ def reload_assets():
     WHITE_BISHOP_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Bishop.svg"))
     WHITE_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Queen.svg"))
     WHITE_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White King.svg"))
+
+
 
 
 #Custom clamp function to keep grid index in range
@@ -173,6 +193,8 @@ def clamp(val, min, max):
     return val
 
 
+
+
 #Handle the logic
 def get_tile(x, y, offset_x, offset_y):
     global grid_x
@@ -181,6 +203,8 @@ def get_tile(x, y, offset_x, offset_y):
     grid_x = clamp(math.floor((x - offset_x)//CELL_SIZE), 0, 7)
     grid_y = clamp(math.floor((y - offset_y)//CELL_SIZE), 0, 7)
     tile = grid[grid_y][grid_x]
+
+
 
 
 def handle_commands():
@@ -195,6 +219,7 @@ def handle_commands():
         show_debug = True
     elif command == "retry":
         pg.event.post(RETRY)
+
 
     elif command == "clear":
         grid = [
@@ -252,6 +277,7 @@ def handle_commands():
                 ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"]
             ]
 
+
     elif "pack" in command:
         args = command.split()
         args.append(None)
@@ -280,6 +306,7 @@ def handle_commands():
             debug_message.append(f"Pack {args[2]} not in Assets folder.")
             debug_time.append(pg.time.get_ticks())
 
+
     elif "set" in command:
         args = command.split()
         if args[0] == "set_volume":
@@ -287,6 +314,7 @@ def handle_commands():
                 debug_message.append("Missing argument (1).")
                 debug_time.append(pg.time.get_ticks())
             SOUNDTRACK.set_volume(float(args[1]))
+
 
     elif "spawn" in command:
         global grabbed
@@ -302,6 +330,8 @@ def handle_commands():
         find_pos(grabbed, grabbed_pos)
 
 
+
+
 def handle_debugs(grabbed_unit):
     global debugs
     mouse_pos = pg.mouse.get_pos()
@@ -312,6 +342,8 @@ def handle_debugs(grabbed_unit):
     debugs[3] = f"Grabbed: {grabbed_unit}"
     debugs[4] = "Clock: " + str(pg.time.get_ticks())
     debugs[5] = "Volume: %" + str(SOUNDTRACK.get_volume()*100)
+
+
 
 
 def handle_check(grabbed_unit, grabbed_pos):
@@ -328,6 +360,7 @@ def handle_check(grabbed_unit, grabbed_pos):
             if "G" in grid[possible_y][possible_x]:
                 grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
 
+
     if "Q" in grabbed_unit:
         direction = 1
         for i in range(MOVES["Queen"][0]):
@@ -354,10 +387,10 @@ def handle_check(grabbed_unit, grabbed_pos):
                 elif direction == 8:#\
                     possible_x = possible_x - 1
                     possible_y = possible_y - 1
-                
+               
                 if possible_x > 7 or possible_y > 7 or possible_x < 0 or possible_y < 0:
                     continue
-                
+               
                 if "W" in grid[possible_y][possible_x]:
                     if "B" in grabbed_unit and "G" in grid[possible_y][possible_x]:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
@@ -367,6 +400,7 @@ def handle_check(grabbed_unit, grabbed_pos):
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
             direction += 1
+
 
     if "F" in grabbed_unit:
         direction = 1
@@ -386,9 +420,10 @@ def handle_check(grabbed_unit, grabbed_pos):
                 elif direction == 4:
                     possible_x = possible_x - 1
                     possible_y = possible_y + 1
-                
+               
                 if possible_x > 7 or possible_y > 7 or possible_x < 0 or possible_y < 0:
                     continue
+
 
                 if "W" in grid[possible_y][possible_x]:
                     if "B" in grabbed_unit and "G" in grid[possible_y][possible_x]:
@@ -399,6 +434,7 @@ def handle_check(grabbed_unit, grabbed_pos):
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
             direction += 1
+
 
     if "R" in grabbed_unit:
         direction = 1
@@ -415,6 +451,7 @@ def handle_check(grabbed_unit, grabbed_pos):
                 elif direction == 4:
                     possible_x = clamp(possible_x - 1, 0, 7)
 
+
                 if "W" in grid[possible_y][possible_x]:
                     if "B" in grabbed_unit and "G" in grid[possible_y][possible_x]:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
@@ -424,6 +461,7 @@ def handle_check(grabbed_unit, grabbed_pos):
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
             direction += 1
+
 
     if "K" in grabbed_unit:
         for possible  in MOVES["Knight"]:
@@ -438,33 +476,40 @@ def handle_check(grabbed_unit, grabbed_pos):
             if "G" in grid[possible_y][possible_x]:
                 grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
 
+
     if grabbed_unit == "BP":
         possible_x = grabbed_pos[1]
         possible_y = grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0]
         kill_x1 = grabbed_pos[1] + 1
         kill_x2 = grabbed_pos[1] - 1
 
+
         if possible_y > 7:
             return
+
 
         if kill_x1 <= 7 and "W" in grid[possible_y][kill_x1] and "G" in grid[possible_y][possible_x]:
             grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "X"
         if kill_x2 >= 0 and "W" in grid[possible_y][kill_x2] and "G" in grid[possible_y][possible_x]:
             grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "X"
-            
+           
     if grabbed_unit == "WP":
         possible_x = grabbed_pos[1]
         possible_y = grabbed_pos[0] + WHITE_MOVES["Pawn"][0][0]
         kill_x1 = grabbed_pos[1] + 1
         kill_x2 = grabbed_pos[1] - 1
 
+
         if possible_y < 0:
             return
 
-        if kill_x1 <= 7 and "B" in grid[possible_y][kill_x1] and "G" in grid[possible_y][possible_x]:
+
+        if kill_x1 <= 7 and "B" in grid[possible_y][kill_x1] and "G" in grid[possible_y][kill_x1]:
             grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "X"
-        if kill_x2 >= 0 and "B" in grid[possible_y][kill_x2] and "G" in grid[possible_y][possible_x]:
+        if kill_x2 >= 0 and "B" in grid[possible_y][kill_x2] and "G" in grid[possible_y][kill_x2]:
             grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "X"
+
+
 
 
 def check_check():
@@ -472,6 +517,8 @@ def check_check():
     for cell_y in range(GRID_SIZE):
         for cell_x in range(GRID_SIZE):
             handle_check(grid[cell_y][cell_x], (cell_y, cell_x))
+
+
 
 
 #Find all the valid locations to move
@@ -488,6 +535,7 @@ def find_pos(grabbed_unit, grabbed_pos):
                 continue
             grid[possible_y][possible_x] = grid[possible_y][possible_x] + "O"
 
+
     if "Q" in grabbed_unit:
         direction = 1
         for i in range(MOVES["Queen"][0]):
@@ -514,9 +562,10 @@ def find_pos(grabbed_unit, grabbed_pos):
                 elif direction == 8:#\
                     possible_x = possible_x - 1
                     possible_y = possible_y - 1
-                
+               
                 if possible_x > 7 or possible_y > 7 or possible_x < 0 or possible_y < 0:
                     continue
+
 
                 if grid[possible_y][possible_x] == "":
                     grid[possible_y][possible_x] = "O"
@@ -529,6 +578,7 @@ def find_pos(grabbed_unit, grabbed_pos):
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "O"
                     break
             direction += 1
+
 
     if "F" in grabbed_unit:
         direction = 1
@@ -548,9 +598,10 @@ def find_pos(grabbed_unit, grabbed_pos):
                 elif direction == 4:
                     possible_x = possible_x - 1
                     possible_y = possible_y + 1
-                
+               
                 if possible_x > 7 or possible_y > 7 or possible_x < 0 or possible_y < 0:
                     continue
+
 
                 if grid[possible_y][possible_x] == "":
                     grid[possible_y][possible_x] = "O"
@@ -563,6 +614,7 @@ def find_pos(grabbed_unit, grabbed_pos):
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "O"
                     break
             direction += 1
+
 
     if "R" in grabbed_unit:
         direction = 1
@@ -579,6 +631,7 @@ def find_pos(grabbed_unit, grabbed_pos):
                 elif direction == 4:
                     possible_x = clamp(possible_x - 1, 0, 7)
 
+
                 if grid[possible_y][possible_x] == "":
                     grid[possible_y][possible_x] = "O"
                 elif "W" in grid[possible_y][possible_x]:
@@ -590,6 +643,7 @@ def find_pos(grabbed_unit, grabbed_pos):
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "O"
                     break
             direction += 1
+
 
     if "K" in grabbed_unit:
         for possible  in MOVES["Knight"]:
@@ -603,43 +657,50 @@ def find_pos(grabbed_unit, grabbed_pos):
                 continue
             grid[possible_y][possible_x] = grid[possible_y][possible_x] + "O"
 
+
     if grabbed_unit == "BP":
         possible_x = grabbed_pos[1]
         possible_y = grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0]
         kill_x1 = grabbed_pos[1] + 1
         kill_x2 = grabbed_pos[1] - 1
 
+
         if possible_y > 7:
             return
+
 
         if grid[possible_y][possible_x] == "":
             grid[possible_y][possible_x] = "O"
             if grid[clamp(possible_y+1, 0, 7)][possible_x] == "" and grabbed_pos[0] == 1:
                 grid[clamp(possible_y+1, 0, 7)][possible_x] = "O"
 
+
         if kill_x1 <= 7 and "W" in grid[possible_y][kill_x1]:
             grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "O"
         if kill_x2 >= 0 and "W" in grid[possible_y][kill_x2]:
             grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "O"
-            
+           
     if grabbed_unit == "WP":
         possible_x = grabbed_pos[1]
         possible_y = grabbed_pos[0] + WHITE_MOVES["Pawn"][0][0]
         kill_x1 = grabbed_pos[1] + 1
         kill_x2 = grabbed_pos[1] - 1
 
+
         if possible_y < 0:
             return
-    
+   
         if grid[possible_y][possible_x] == "":
             grid[possible_y][possible_x] = "O"
             if grid[clamp(possible_y-1, 0, 7)][possible_x] == "" and grabbed_pos[0] == 6:
                 grid[clamp(possible_y-1, 0, 7)][possible_x] = "O"
 
+
         if kill_x1 <= 7 and "B" in grid[possible_y][kill_x1]:
             grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "O"
         if kill_x2 >= 0 and "B" in grid[possible_y][kill_x2]:
             grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "O"
+
 
 #Because it doesn't like removing circles
 def remove_pos(grabbed_unit, grabbed_pos):
@@ -652,6 +713,7 @@ def remove_pos(grabbed_unit, grabbed_pos):
             grid[cell_y][cell_x] = point
             check_check()
 
+
 #Draw the screen
 def draw_debug():
     y = -5
@@ -659,6 +721,7 @@ def draw_debug():
         draw_debug = SMALL_DEFAULT_FONT.render(str(debug), 1, GREEN)
         SCREEN.blit(draw_debug, (0, y))
         y += 20
+
 
 def draw_debug_message():
     y = HEIGHT - 40
@@ -670,9 +733,13 @@ def draw_debug_message():
         y += 20
 
 
+
+
 def draw_console():
     text = SMALL_DEFAULT_FONT.render(console_text, 1, GREEN)
     SCREEN.blit(text, (10, HEIGHT - text.get_height() - 5))
+
+
 
 
 def draw_screen(grid_size, cell_size, grabbed_unit, turn, check, board_set, move_y):
@@ -686,6 +753,7 @@ def draw_screen(grid_size, cell_size, grabbed_unit, turn, check, board_set, move
     title_text = NORMAL_DEFAULT_FONT.render(f"{turn}'s Turn!", 1, colour)
     SCREEN.blit(title_text, (WIDTH//2 - title_text.get_width()//2, -5 + move_y))
 
+
     if "W" in check[0]:
         check_text1 = BIG_DEFAULT_FONT.render("CHECK! PANIC!", 1, BLUE)
         #check_text1 = pg.transform.rotate(check_text1, pg.time.get_ticks()//4)
@@ -696,6 +764,7 @@ def draw_screen(grid_size, cell_size, grabbed_unit, turn, check, board_set, move
         #check_text2 = pg.transform.rotate(check_text2, pg.time.get_ticks()//-4)
         y = math.cos(pg.time.get_ticks()/150) * 100
         SCREEN.blit(check_text2, (WIDTH//2 - check_text2.get_width()//2, y))
+
 
     if grabbed_unit != "":
         mouse_pos = pg.mouse.get_pos()
@@ -724,11 +793,14 @@ def draw_screen(grid_size, cell_size, grabbed_unit, turn, check, board_set, move
         elif grabbed_unit == "WG":
             SCREEN.blit(WHITE_KING_IMAGE, (mouse_pos[0]-(WHITE_KING_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_KING_IMAGE.get_height()//2) + move_y))
 
+
     if show_debug:
         draw_debug()
     draw_debug_message()
     draw_console()
     pg.display.update()
+
+
 
 
 def draw_board(offset_x, offset_y, grid_size, cell_size, m_y):
@@ -774,6 +846,7 @@ def draw_board(offset_x, offset_y, grid_size, cell_size, m_y):
                 else:
                     pg.event.post(NO_WHITE_CHECK_EVENT)
 
+
             if "O" in grid[cell_y][cell_x]:
                 if len(grid[cell_y][cell_x]) > 1:
                     pg.draw.circle(SCREEN, RED, (move_x + (cell_size//2), move_y + (cell_size//2)), cell_size//3, 5)
@@ -791,6 +864,8 @@ def draw_board(offset_x, offset_y, grid_size, cell_size, m_y):
             colour = WHITE
 
 
+
+
 #Draw the title screen
 def draw_title(play_button):
     SCREEN.fill((0, 150, 150))
@@ -806,15 +881,19 @@ def draw_title(play_button):
     pg.display.update()
 
 
+
+
 def draw_retry_screen(move_y, retry_button, winner):
     bg = pg.Rect(0, move_y, WIDTH, HEIGHT)
     pg.draw.rect(SCREEN, (0, 150, 150), bg)
+
 
     title_text = BIG_DEFAULT_FONT.render(f"{winner} won! Replay?", 1, WHITE)
     SCREEN.blit(title_text, ((WIDTH//2 - title_text.get_width()//2, 75 + move_y)))
     pg.draw.rect(SCREEN, WHITE, retry_button)
     play_text = NORMAL_DEFAULT_FONT.render("PLAY CHESS", 1, BLACK)
     SCREEN.blit(play_text, (WIDTH//2 - play_text.get_width()//2, retry_button.y + 20))
+
 
     if show_debug:
         draw_debug()
@@ -823,12 +902,15 @@ def draw_retry_screen(move_y, retry_button, winner):
     pg.display.update()
 
 
+
+
 def retry_screen(winner):
     global WIDTH
     global HEIGHT
     SOUNDTRACK.stop()
     move_y = HEIGHT * -1
     retry_button_bounds = [(WIDTH//2 - 150, WIDTH//2 - 150 + 300), (300, 400)]
+
 
     button_set = False
     clock = pg.time.Clock()
@@ -841,10 +923,10 @@ def retry_screen(winner):
             if event.type == pg.QUIT:
                 run = False
                 pg.display.quit()
-            
+           
             if event.type == REPEAT_SOUND:
                 SOUNDTRACK.play()
-            
+           
             if event.type == pg.MOUSEBUTTONDOWN:
                 mouse = pg.mouse.get_pressed()
                 mouse_pos = pg.mouse.get_pos()
@@ -852,7 +934,7 @@ def retry_screen(winner):
                     if button_set:
                         run = False
                         break
-            
+           
             if event.type == pg.KEYDOWN:
                 if console:
                     if event.key == pg.K_BACKSPACE:
@@ -866,25 +948,29 @@ def retry_screen(winner):
                         continue
                     else:
                         command += event.unicode
-                    
+                   
                     console_text = '>' + command
-            
+           
                 if event.key == pg.K_F1 or event.key == pg.K_SLASH:
                         console = True
                         console_text = '>' + command
-    
+   
         if move_y < 0:
             move_y = clamp(move_y + 10, HEIGHT * -1, 0)
         else:
             button_set = True
-        
+       
         retry_button = pg.Rect(WIDTH//2 - 150, 300 + move_y, 300, 100)
+
 
         if show_debug:
             handle_debugs("O")
         draw_retry_screen(move_y, retry_button, winner)
 
+
     main()
+
+
 
 
 #Title screen loop
@@ -892,8 +978,9 @@ def title():
     global WIDTH
     global HEIGHT
 
+
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
-    
+   
     clock = pg.time.Clock()
     run = True
     console = False
@@ -909,16 +996,17 @@ def title():
             if event.type == pg.QUIT:
                 run = False
                 pg.display.quit()
-            
+           
             if event.type == REPEAT_SOUND:
                 SOUNDTRACK.play()
-            
+           
             if event.type == pg.MOUSEBUTTONDOWN:
                 mouse = pg.mouse.get_pressed()
                 mouse_pos = pg.mouse.get_pos()
                 if mouse[0] and ((mouse_pos[0] >=play_bounds[0][0] and mouse_pos[0] <=play_bounds[0][1]) and (mouse_pos[1] >=play_bounds[1][0] and mouse_pos[1] <=play_bounds[1][1])):
                     run = False
                     break
+
 
             if event.type == pg.KEYDOWN:
                 if console:
@@ -933,19 +1021,21 @@ def title():
                         continue
                     else:
                         command += event.unicode
-                    
+                   
                     console_text = '>' + command
-            
+           
                 if event.key == pg.K_F1 or event.key == pg.K_SLASH:
                         console = True
                         console_text = '>' + command
-        
+       
         if show_debug:
             handle_debugs("O")
-        
+       
         draw_title(play_button)
 
+
     main()
+
 
 #Main game loop
 def main():
@@ -978,10 +1068,10 @@ def main():
             if event.type == pg.QUIT:
                 run = False
                 pg.display.quit()
-            
+           
             if event.type == REPEAT_SOUND:
                 SOUNDTRACK.play()
-                
+               
             if board_set:
                 if event.type == pg.USEREVENT:
                     if event.MyOwnType == ON_WHITE_CHECK:
@@ -992,11 +1082,11 @@ def main():
                         check[0] = ""
                     if event.MyOwnType == ON_NO_BLACK_CHECK:
                         check[1] = ""
-                
+               
                 if event.type == pg.USEREVENT + 1:
                     if event.MyOwnType == ON_RETRY:
                         run = False
-                
+               
                 if event.type == pg.MOUSEBUTTONDOWN:
                     mouse = pg.mouse.get_pressed()
                     if mouse[0]:
@@ -1033,11 +1123,13 @@ def main():
                                 else:
                                     turn = "White"
 
+
                             else:
                                 grid[grabbed_pos[0]][grabbed_pos[1]] = old_grid[grabbed_pos[0]][grabbed_pos[1]]
                                 remove_pos(grabbed, grabbed_pos)
                                 check_check()
                                 grabbed = ""
+
 
             if event.type == pg.KEYDOWN:
                 if console:
@@ -1052,31 +1144,36 @@ def main():
                         continue
                     else:
                         command += event.unicode
-                    
+                   
                     console_text = '>' + command
-            
+           
                 if event.key == pg.K_F1 or event.key == pg.K_SLASH:
                         console = True
                         console_text = '>' + command
 
+
         if show_debug:
             handle_debugs(grabbed)
-        
+       
         if move_y < 0:
             move_y = clamp(move_y + 10, HEIGHT * -1, 0)
         else:
             board_set = True
-        
+       
         for debug in range(len(debug_message)):
             if pg.time.get_ticks() - debug_time[debug-1] >= 5000:
                 debug_message.pop(debug-1)
                 debug_time.pop(debug-1)
-
+       
         draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check, board_set, move_y)
+
 
     pg.time.wait(500)
     retry_screen(winner)
 
 
+
+
 if __name__ == "__main__":
     title()
+
