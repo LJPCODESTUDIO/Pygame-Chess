@@ -49,7 +49,7 @@ BLACK_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=ON_BLACK_CHECK)
 NO_WHITE_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=ON_NO_WHITE_CHECK)
 NO_BLACK_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=ON_NO_BLACK_CHECK)
 #Command Events
-RETRY = pg.event.Event(pg.USEREVENT + 1, MyOwnType=ON_RETRY)
+RETRY = pg.event.Event(pg.USEREVENT + 2, MyOwnType=ON_RETRY)
 
 #Fonts
 BIG_DEFAULT_FONT = pg.font.SysFont('comicsans', 80)
@@ -1004,7 +1004,7 @@ def main():
                     if event.MyOwnType == ON_NO_BLACK_CHECK:
                         check[1] = ""
                 
-                if event.type == pg.USEREVENT + 1:
+                if event.type == pg.USEREVENT + 2:
                     if event.MyOwnType == ON_RETRY:
                         run = False
                 
