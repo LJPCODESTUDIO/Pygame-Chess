@@ -2,6 +2,7 @@ import pygame as pg
 import math
 import os
 from game import Game
+from network import network
 
 
 #Init stuffs
@@ -10,14 +11,16 @@ pg.font.init()
 pg.init()
 pg.display.set_caption("WOOOO CHESS!")
 pack = "Default"
-g = Game(1)
+
+#Event
+REPEAT_SOUND = pg.USEREVENT + 1
 
 #Const Var Inits
 WIDTH = 900
 HEIGHT = 700
 SCREEN = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE)
-OFFSET_X = WIDTH//2-(g.GRID_SIZE*g.CELL_SIZE//2)
-OFFSET_Y = HEIGHT//2-(g.GRID_SIZE*g.CELL_SIZE//2)+20
+OFFSET_X = WIDTH//2-(8*80//2)
+OFFSET_Y = HEIGHT//2-(8*80//2)+20
 
 FPS = 60
 
@@ -134,11 +137,7 @@ def reload_assets():
     WHITE_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White King.svg"))
 
 
-def handle_commands():
-    global show_debug
-    global grid
-    global grid_x
-    global grid_y
+def handle_commands(g):
     if command == "debug":
         if show_debug:
             show_debug = False
@@ -149,7 +148,7 @@ def handle_commands():
 
 
     elif command == "clear":
-        grid = [
+        g.grid = [
                 ["", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", ""],
@@ -160,7 +159,7 @@ def handle_commands():
                 ["", "", "", "", "", "", "", ""]
             ]
     elif command == "Royalty":
-        grid = [
+        g.grid = [
                 ["BG", "BG", "BG", "BG", "BG", "BG", "BG", "BG"],
                 ["BG", "BG", "BG", "BG", "BG", "BG", "BG", "BG"],
                 ["", "", "", "", "", "", "", ""],
@@ -171,7 +170,7 @@ def handle_commands():
                 ["WG", "WG", "WG", "WG", "WG", "WG", "WG", "WG"]
             ]
     elif command == "Royalty2":
-        grid = [
+        g.grid = [
                 ["BQ", "BQ", "BQ", "BQ", "BG", "BQ", "BQ", "BQ"],
                 ["BQ", "BQ", "BQ", "BQ", "BQ", "BQ", "BQ", "BQ"],
                 ["", "", "", "", "", "", "", ""],
@@ -182,7 +181,7 @@ def handle_commands():
                 ["WQ", "WQ", "WQ", "WQ", "WG", "WQ", "WQ", "WQ"]
             ]
     elif command == "restart":
-        grid = [
+        g.grid = [
                 ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
                 ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                 ["", "", "", "", "", "", "", ""],
@@ -193,7 +192,7 @@ def handle_commands():
                 ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"],
             ]
     elif command == "fill":
-        grid = [
+        g.grid = [
                 ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
                 ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                 ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
@@ -245,20 +244,20 @@ def handle_commands():
         args = command.split()
         mouse_pos = pg.mouse.get_pos()
         g.get_tile(mouse_pos[0], mouse_pos[1], OFFSET_X, OFFSET_Y)
-        old_grid[grid_y][grid_x] = grid[grid_y][grid_x]
-        grid[grid_y][grid_x] = grid[grid_y][grid_x] + "O"
-        grabbed = args[1]
-        grabbed_pos[0] = grid_y
-        grabbed_pos[1] = grid_x
-        g.find_pos(grabbed, grabbed_pos)
+        g.old_grid[g.grid_y][g.grid_x] = g.grid[g.grid_y][g.grid_x]
+        g.grid[g.grid_y][g.grid_x] = g.grid[g.grid_y][g.grid_x] + "O"
+        g.grabbed = args[1]
+        g.grabbed_pos[0] = g.grid_y
+        g.grabbed_pos[1] = g.grid_x
+        g.find_pos(g.grabbed, g.grabbed_pos)
 
 
-def handle_debugs(grabbed_unit):
+def handle_debugs(grabbed_unit, g):
     global debugs
     mouse_pos = pg.mouse.get_pos()
-    g.get_tile(mouse_pos[0], mouse_pos[1], OFFSET_X, OFFSET_Y)
+    tile = g.get_tile(mouse_pos[0], mouse_pos[1], OFFSET_X, OFFSET_Y)
     debugs[0] = "Mouse Pos: " + str(mouse_pos)
-    debugs[1] = f"Grid Pos: ({grid_x}, {grid_y})"
+    debugs[1] = f"Grid Pos: ({g.grid_x}, {g.grid_y})"
     debugs[2] = f"Tile: {tile}"
     debugs[3] = f"Grabbed: {grabbed_unit}"
     debugs[4] = "Clock: " + str(pg.time.get_ticks())
@@ -345,7 +344,7 @@ def draw_screen(grid_size, cell_size, grabbed_unit, turn, check, board_set, move
     pg.display.update()
 
 
-def draw_board(offset_x, offset_y, grid_size, cell_size, m_y):
+def draw_board(offset_x, offset_y, grid_size, cell_size, m_y, g):
     move_y = offset_y
     colour = WHITE
     for cell_y in range(grid_size):
@@ -388,8 +387,8 @@ def draw_board(offset_x, offset_y, grid_size, cell_size, m_y):
                 else:
                     pg.event.post(g.NO_WHITE_CHECK_EVENT)
 
-            if "O" in grid[cell_y][cell_x]:
-                if len(grid[cell_y][cell_x]) > 1:
+            if "O" in g.grid[cell_y][cell_x]:
+                if len(g.grid[cell_y][cell_x]) > 1:
                     pg.draw.circle(SCREEN, RED, (move_x + (cell_size//2), move_y + (cell_size//2)), cell_size//3, 5)
                 else:
                     pg.draw.circle(SCREEN, BLUE, (move_x + (cell_size//2), move_y + (cell_size//2)), cell_size//3, 5)
@@ -437,12 +436,22 @@ def draw_retry_screen(move_y, retry_button, winner):
     pg.display.update()
 
 
-def retry_screen(winner):
+def retry_screen(winner, g):
     global WIDTH
     global HEIGHT
     SOUNDTRACK.stop()
     move_y = HEIGHT * -1
     retry_button_bounds = [(WIDTH//2 - 150, WIDTH//2 - 150 + 300), (300, 400)]
+    g.grid = [
+            ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
+            ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
+            ["", "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", ""],
+            ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
+            ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"],
+        ]
 
     button_set = False
     clock = pg.time.Clock()
@@ -456,7 +465,7 @@ def retry_screen(winner):
                 run = False
                 pg.display.quit()
            
-            if event.type == g.REPEAT_SOUND:
+            if event.type == REPEAT_SOUND:
                 SOUNDTRACK.play()
            
             if event.type == pg.MOUSEBUTTONDOWN:
@@ -506,7 +515,7 @@ def title():
     global WIDTH
     global HEIGHT
 
-    pg.time.set_timer(g.REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
+    pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
    
     clock = pg.time.Clock()
     run = True
@@ -524,7 +533,7 @@ def title():
                 run = False
                 pg.display.quit()
            
-            if event.type == g.REPEAT_SOUND:
+            if event.type == REPEAT_SOUND:
                 SOUNDTRACK.play()
            
             if event.type == pg.MOUSEBUTTONDOWN:
@@ -569,15 +578,15 @@ def main():
     global OFFSET_X
     global OFFSET_Y
     GAME_END.stop()
-    pg.time.set_timer(g.REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
+    pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
     clock = pg.time.Clock()
     move_y = HEIGHT * -1
     board_set = False
     run = True
-    turn = "White"
     winner = "Jester"
     console = False
     check = ["", ""]
+    n = network()
     global console_text
     global command
     global grid
@@ -585,16 +594,24 @@ def main():
     global grabbed
     global grabbed_pos
     while run:
-        WIDTH, HEIGHT = SCREEN.get_size()
-        OFFSET_X = WIDTH//2-(g.GRID_SIZE*g.CELL_SIZE//2)
-        OFFSET_Y = HEIGHT//2-(g.GRID_SIZE*g.CELL_SIZE//2)+20
+        try:
+            g = n.send_data("get")
+            WIDTH, HEIGHT = SCREEN.get_size()
+            OFFSET_X = WIDTH//2-(g.GRID_SIZE*g.CELL_SIZE//2)
+            OFFSET_Y = HEIGHT//2-(g.GRID_SIZE*g.CELL_SIZE//2)+20
+        except Exception as e:
+            print(e)
+            run = False
+            print("1Couldn't get game")
+            break
+
         clock.tick(FPS)
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 run = False
                 pg.display.quit()
            
-            if event.type == g.REPEAT_SOUND:
+            if event.type == REPEAT_SOUND:
                 SOUNDTRACK.play()
                
             if board_set:
@@ -608,7 +625,7 @@ def main():
                     if event.MyOwnType == g.ON_NO_BLACK_CHECK:
                         check[1] = ""
                
-                if event.type == pg.USEREVENT + 1:
+                if event.type == pg.USEREVENT + 2:
                     if event.MyOwnType == g.ON_RETRY:
                         run = False
                
@@ -616,19 +633,19 @@ def main():
                     mouse = pg.mouse.get_pressed()
                     if mouse[0]:
                         mouse_pos = pg.mouse.get_pos()
-                        g.get_tile(mouse_pos[0], mouse_pos[1], OFFSET_X, OFFSET_Y)
-                        if grabbed == "":
-                            if not turn[:1] in g.grid[grid_y][grid_x]:
+                        tile = g.get_tile(mouse_pos[0], mouse_pos[1], OFFSET_X, OFFSET_Y)
+                        if g.grabbed == "":
+                            if not g.turn[:1] in g.grid[g.grid_y][g.grid_x]:
                                 continue
                             g.old_grid[g.grid_y][g.grid_x] = g.grid[g.grid_y][g.grid_x]
-                            grabbed = grid[grid_y][grid_x].replace("O", "")
+                            g.grabbed = g.grid[g.grid_y][g.grid_x].replace("O", "")
                             g.grabbed_pos[0] = g.grid_y
                             g.grabbed_pos[1] = g.grid_x
                             g.find_pos(g.grabbed, g.grabbed_pos)
-                            grid[grid_y][grid_x] = ""
+                            g.grid[g.grid_y][g.grid_x] = ""
                         else:
                             if "O" in g.grid[g.grid_y][g.grid_x]:
-                                g.remove_pos(g.grabbed, g.grabbed_pos)
+                                g.remove_pos()
                                 if "WP" in g.grabbed and g.grid_y == 0:
                                     g.grabbed = "WQ"
                                 if "BP" in g.grabbed and g.grid_y == 7:
@@ -640,7 +657,7 @@ def main():
                                         winner = "White"
                                     run = False
                                 g.grid[g.grid_y][g.grid_x] = g.grabbed
-                                g.remove_pos(g.grabbed, g.grabbed_pos)
+                                g.remove_pos()
                                 g.check_check()
                                 g.grabbed = ""
                                 if "W" in turn:
@@ -650,7 +667,7 @@ def main():
 
                             else:
                                 g.grid[g.grabbed_pos[0]][g.grabbed_pos[1]] = g.old_grid[g.grabbed_pos[0]][g.grabbed_pos[1]]
-                                g.remove_pos(grabbed, grabbed_pos)
+                                g.remove_pos()
                                 g.check_check()
                                 g.grabbed = ""
 
@@ -689,7 +706,7 @@ def main():
                 debug_message.pop(debug-1)
                 debug_time.pop(debug-1)
        
-        draw_screen(g.GRID_SIZE, g.CELL_SIZE, g.grabbed, turn, check, board_set, move_y)
+        draw_screen(g.GRID_SIZE, g.CELL_SIZE, g.grabbed, g.turn, check, board_set, move_y)
 
     pg.time.wait(500)
     retry_screen(winner)
@@ -697,4 +714,3 @@ def main():
 
 if __name__ == "__main__":
     title()
-

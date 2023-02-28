@@ -24,17 +24,16 @@ class Game():
         #Command Events
         self.ON_RETRY = 1
 
-        #Events
-        self.REPEAT_SOUND = pg.USEREVENT + 1
         #Check Events
         self.WHITE_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=self.ON_WHITE_CHECK)
         self.BLACK_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=self.ON_BLACK_CHECK)
         self.NO_WHITE_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=self.ON_NO_WHITE_CHECK)
         self.NO_BLACK_CHECK_EVENT = pg.event.Event(pg.USEREVENT, MyOwnType=self.ON_NO_BLACK_CHECK)
         #Command Events
-        self.RETRY = pg.event.Event(pg.USEREVENT + 1, MyOwnType=self.ON_RETRY)
+        self.RETRY = pg.event.Event(pg.USEREVENT + 2, MyOwnType=self.ON_RETRY)
 
         #Global Vars
+        self.turn = "White"
         self.grid = [
             ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
             ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
@@ -74,6 +73,19 @@ class Game():
             "Volume: "
         ]
     
+    def reset(self):
+        self.grid = [
+            ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
+            ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
+            ["", "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", ""],
+            ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
+            ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"],
+        ]
+        self.turn = "White"
+    
     #Custom clamp function to keep grid index in range
     def clamp(self, val, min, max):
         if val > max:
@@ -83,12 +95,9 @@ class Game():
         return val
     
     def get_tile(self, x, y, offset_x, offset_y):
-        self.grid_x
-        self.grid_y
-        self.tile
-        grid_x = self.clamp(math.floor((x - offset_x)/self.CELL_SIZE), 0, 7)
-        grid_y = self.clamp(math.floor((y - offset_y)//self.CELL_SIZE), 0, 7)
-        self.tile = self.grid[grid_y][grid_x]
+        self.grid_x = self.clamp(math.floor((x - offset_x)/self.CELL_SIZE), 0, 7)
+        self.grid_y = self.clamp(math.floor((y - offset_y)//self.CELL_SIZE), 0, 7)
+        self.tile = self.grid[self.grid_y][self.grid_x]
         return self.tile
     
     def handle_check(self, grabbed_unit, grabbed_pos):
@@ -195,7 +204,7 @@ class Game():
 
                     if "W" in self.grid[possible_y][possible_x]:
                         if "B" in grabbed_unit and "G" in self.grid[possible_y][possible_x]:
-                            self.grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
+                            self.grid[possible_y][possible_x] = self.grid[possible_y][possible_x] + "X"
                         break
                     elif "B" in self.grid[possible_y][possible_x]:
                         if "W" in grabbed_unit and "G" in self.grid[possible_y][possible_x]:
