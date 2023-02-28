@@ -447,9 +447,9 @@ def handle_check(grabbed_unit, grabbed_pos):
         if possible_y > 7:
             return
 
-        if kill_x1 <= 7 and "W" in grid[possible_y][kill_x1] and "G" in grid[possible_y][possible_x]:
+        if kill_x1 <= 7 and "W" in grid[possible_y][kill_x1] and "G" in grid[possible_y][kill_x1]:
             grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "X"
-        if kill_x2 >= 0 and "W" in grid[possible_y][kill_x2] and "G" in grid[possible_y][possible_x]:
+        if kill_x2 >= 0 and "W" in grid[possible_y][kill_x2] and "G" in grid[possible_y][kill_x2]:
             grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "X"
             
     if grabbed_unit == "WP":
@@ -461,9 +461,9 @@ def handle_check(grabbed_unit, grabbed_pos):
         if possible_y < 0:
             return
 
-        if kill_x1 <= 7 and "B" in grid[possible_y][kill_x1] and "G" in grid[possible_y][possible_x]:
+        if kill_x1 <= 7 and "B" in grid[possible_y][kill_x1] and "G" in grid[possible_y][kill_x1]:
             grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "X"
-        if kill_x2 >= 0 and "B" in grid[possible_y][kill_x2] and "G" in grid[possible_y][possible_x]:
+        if kill_x2 >= 0 and "B" in grid[possible_y][kill_x2] and "G" in grid[possible_y][kill_x2]:
             grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "X"
 
 
@@ -826,6 +826,7 @@ def draw_retry_screen(move_y, retry_button, winner):
 def retry_screen(winner):
     global WIDTH
     global HEIGHT
+    global grid
     SOUNDTRACK.stop()
     move_y = HEIGHT * -1
     retry_button_bounds = [(WIDTH//2 - 150, WIDTH//2 - 150 + 300), (300, 400)]
@@ -851,6 +852,16 @@ def retry_screen(winner):
                 if mouse[0] and ((mouse_pos[0] >=retry_button_bounds[0][0] and mouse_pos[0] <=retry_button_bounds[0][1]) and (mouse_pos[1] >=retry_button_bounds[1][0] and mouse_pos[1] <=retry_button_bounds[1][1])):
                     if button_set:
                         run = False
+                        grid = [
+                            ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
+                            ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
+                            ["", "", "", "", "", "", "", ""],
+                            ["", "", "", "", "", "", "", ""],
+                            ["", "", "", "", "", "", "", ""],
+                            ["", "", "", "", "", "", "", ""],
+                            ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
+                            ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"],
+                        ]
                         break
             
             if event.type == pg.KEYDOWN:
