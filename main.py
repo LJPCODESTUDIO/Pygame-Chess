@@ -1,6 +1,8 @@
 import pygame as pg
 import math
 import os
+import json
+import datetime
 
 #Init stuffs
 pg.mixer.init()
@@ -87,14 +89,14 @@ BLUE = (0, 0, 255)
 
 #Global Vars
 grid = [
-    ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
-    ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
+    ["1BR", "1BK", "1BF", "BQ", "BG", "2BF", "2BK", "2BR"],
+    ["1BP", "2BP", "3BP", "4BP", "5BP", "6BP", "7BP", "8BP"],
     ["", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", ""],
-    ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
-    ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"],
+    ["1WP", "2WP", "3WP", "4WP", "5WP", "6WP", "7WP", "8WP"],
+    ["1WR", "1WK", "1WF", "WQ", "WG", "2WF", "2WK", "2WR"],
 ]
 old_grid = [
     ["", "", "", "", "", "", "", ""],
@@ -124,6 +126,25 @@ debugs = [
     "Clock: ",
     "Volume: "
 ]
+
+
+class button():
+    def __init__(self, pos, size, text, colour):
+        self.pos = pos
+        self.size = size
+        self.text = text
+        self.colour = colour
+
+    def draw(self, screen):
+        pg.draw.rect(screen, self.colour, (self.pos[0], self.pos[1], self.size[0], self.size[1]))
+        text = NORMAL_DEFAULT_FONT.render(self.text, 1, BLACK)
+        screen.blit(text, (self.pos[0]+self.size[0]//2-text.get_width()//2, self.pos[1]+self.size[1]//2-text.get_height()//2))
+    
+    def click(self, pos):
+        if self.pos[0] <= pos[0] <= self.pos[0] + self.size[0] and self.pos[1] <= pos[1] <= self.pos[1] + self.size[1]:
+            return True
+        else:
+            return False
 
 
 def reload_assets():
@@ -171,6 +192,12 @@ def clamp(val, min, max):
     if val < min:
         val = min
     return val
+
+
+def save(board):
+    time_stamp = datetime.datetime.now()
+    with open(os.path.join("Saves/", f"save-{time_stamp}"), "x") as f:
+        json.dumps(board)
 
 
 #Handle the logic
@@ -231,14 +258,14 @@ def handle_commands():
             ]
     elif command == "restart":
         grid = [
-                ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
-                ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
+                ["1BR", "1BK", "1BF", "BQ", "BG", "2BF", "2BK", "2BR"],
+                ["1BP", "2BP", "3BP", "4BP", "5BP", "6BP", "7BP", "8BP"],
                 ["", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", ""],
-                ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
-                ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"],
+                ["1WP", "2WP", "3WP", "4WP", "5WP", "6WP", "7WP", "8WP"],
+                ["1WR", "1WK", "1WF", "WQ", "WG", "2WF", "2WK", "2WR"],
             ]
     elif command == "fill":
         grid = [
@@ -325,7 +352,7 @@ def handle_check(grabbed_unit, grabbed_pos):
                 continue
             if "B" in grid[possible_y][possible_x] and "B" in grabbed_unit:
                 continue
-            if "G" in grid[possible_y][possible_x]:
+            if "G" in grid[possible_y][possible_x] and "X" not in grid[possible_y][possible_x]:
                 grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
 
     if "Q" in grabbed_unit:
@@ -359,11 +386,11 @@ def handle_check(grabbed_unit, grabbed_pos):
                     continue
                 
                 if "W" in grid[possible_y][possible_x]:
-                    if "B" in grabbed_unit and "G" in grid[possible_y][possible_x]:
+                    if "B" in grabbed_unit and "G" in grid[possible_y][possible_x] and "X" not in grid[possible_y][possible_x]:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
                 elif "B" in grid[possible_y][possible_x]:
-                    if "W" in grabbed_unit and "G" in grid[possible_y][possible_x]:
+                    if "W" in grabbed_unit and "G" in grid[possible_y][possible_x] and "X" not in grid[possible_y][possible_x]:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
             direction += 1
@@ -391,11 +418,11 @@ def handle_check(grabbed_unit, grabbed_pos):
                     continue
 
                 if "W" in grid[possible_y][possible_x]:
-                    if "B" in grabbed_unit and "G" in grid[possible_y][possible_x]:
+                    if "B" in grabbed_unit and "G" in grid[possible_y][possible_x] and "X" not in grid[possible_y][possible_x]:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
                 elif "B" in grid[possible_y][possible_x]:
-                    if "W" in grabbed_unit and "G" in grid[possible_y][possible_x]:
+                    if "W" in grabbed_unit and "G" in grid[possible_y][possible_x] and "X" not in grid[possible_y][possible_x]:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
             direction += 1
@@ -416,11 +443,11 @@ def handle_check(grabbed_unit, grabbed_pos):
                     possible_x = clamp(possible_x - 1, 0, 7)
 
                 if "W" in grid[possible_y][possible_x]:
-                    if "B" in grabbed_unit and "G" in grid[possible_y][possible_x]:
+                    if "B" in grabbed_unit and "G" in grid[possible_y][possible_x] and "X" not in grid[possible_y][possible_x]:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
                 elif "B" in grid[possible_y][possible_x]:
-                    if "W" in grabbed_unit and "G" in grid[possible_y][possible_x]:
+                    if "W" in grabbed_unit and "G" in grid[possible_y][possible_x] and "X" not in grid[possible_y][possible_x]:
                         grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
                     break
             direction += 1
@@ -435,10 +462,10 @@ def handle_check(grabbed_unit, grabbed_pos):
                 continue
             if "B" in grid[possible_y][possible_x] and "B" in grabbed_unit:
                 continue
-            if "G" in grid[possible_y][possible_x]:
+            if "G" in grid[possible_y][possible_x] and "X" not in grid[possible_y][possible_x]:
                 grid[possible_y][possible_x] = grid[possible_y][possible_x] + "X"
 
-    if grabbed_unit == "BP":
+    if "BP" in grabbed_unit:
         possible_x = grabbed_pos[1]
         possible_y = grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0]
         kill_x1 = grabbed_pos[1] + 1
@@ -447,12 +474,12 @@ def handle_check(grabbed_unit, grabbed_pos):
         if possible_y > 7:
             return
 
-        if kill_x1 <= 7 and "W" in grid[possible_y][kill_x1] and "G" in grid[possible_y][kill_x1]:
+        if kill_x1 <= 7 and "W" in grid[possible_y][kill_x1] and "G" in grid[possible_y][kill_x1] and "X" not in grid[possible_y][kill_x1]:
             grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "X"
-        if kill_x2 >= 0 and "W" in grid[possible_y][kill_x2] and "G" in grid[possible_y][kill_x2]:
+        if kill_x2 >= 0 and "W" in grid[possible_y][kill_x2] and "G" in grid[possible_y][kill_x2] and "X" not in grid[possible_y][kill_x2]:
             grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "X"
             
-    if grabbed_unit == "WP":
+    if "WP" in grabbed_unit:
         possible_x = grabbed_pos[1]
         possible_y = grabbed_pos[0] + WHITE_MOVES["Pawn"][0][0]
         kill_x1 = grabbed_pos[1] + 1
@@ -461,9 +488,9 @@ def handle_check(grabbed_unit, grabbed_pos):
         if possible_y < 0:
             return
 
-        if kill_x1 <= 7 and "B" in grid[possible_y][kill_x1] and "G" in grid[possible_y][kill_x1]:
+        if kill_x1 <= 7 and "B" in grid[possible_y][kill_x1] and "G" in grid[possible_y][kill_x1] and "X" not in grid[possible_y][kill_x1]:
             grid[possible_y][kill_x1] = grid[possible_y][kill_x1] + "X"
-        if kill_x2 >= 0 and "B" in grid[possible_y][kill_x2] and "G" in grid[possible_y][kill_x2]:
+        if kill_x2 >= 0 and "B" in grid[possible_y][kill_x2] and "G" in grid[possible_y][kill_x2] and "X" not in grid[possible_y][kill_x2]:
             grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "X"
 
 
@@ -603,7 +630,7 @@ def find_pos(grabbed_unit, grabbed_pos):
                 continue
             grid[possible_y][possible_x] = grid[possible_y][possible_x] + "O"
 
-    if grabbed_unit == "BP":
+    if "BP" in grabbed_unit:
         possible_x = grabbed_pos[1]
         possible_y = grabbed_pos[0] + BLACK_MOVES["Pawn"][0][0]
         kill_x1 = grabbed_pos[1] + 1
@@ -622,7 +649,7 @@ def find_pos(grabbed_unit, grabbed_pos):
         if kill_x2 >= 0 and "W" in grid[possible_y][kill_x2]:
             grid[possible_y][kill_x2] = grid[possible_y][kill_x2] + "O"
             
-    if grabbed_unit == "WP":
+    if "WP" in grabbed_unit:
         possible_x = grabbed_pos[1]
         possible_y = grabbed_pos[0] + WHITE_MOVES["Pawn"][0][0]
         kill_x1 = grabbed_pos[1] + 1
@@ -660,6 +687,7 @@ def draw_debug():
         SCREEN.blit(draw_debug, (0, y))
         y += 20
 
+
 def draw_debug_message():
     y = HEIGHT - 40
     for i in debug_message:
@@ -675,7 +703,7 @@ def draw_console():
     SCREEN.blit(text, (10, HEIGHT - text.get_height() - 5))
 
 
-def draw_screen(grid_size, cell_size, grabbed_unit, turn, check, board_set, move_y):
+def draw_screen(grid_size, cell_size, grabbed_unit, turn, check, board, move_y, save_button):
     bg = pg.Rect(0, move_y, WIDTH, HEIGHT)
     pg.draw.rect(SCREEN, (0, 150, 150), bg)
     draw_board(OFFSET_X, OFFSET_Y, grid_size, cell_size, move_y)
@@ -699,36 +727,53 @@ def draw_screen(grid_size, cell_size, grabbed_unit, turn, check, board_set, move
 
     if grabbed_unit != "":
         mouse_pos = pg.mouse.get_pos()
-        if grabbed_unit == "BP":
+        if "BP" in grabbed_unit:
             SCREEN.blit(BLACK_PAWN, (mouse_pos[0]-(BLACK_PAWN.get_width()//2), mouse_pos[1]-(BLACK_PAWN.get_height()//2) + move_y))
-        elif grabbed_unit == "BK":
+        if "BK" in grabbed_unit:
             SCREEN.blit(BLACK_KNIGHT_IMAGE, (mouse_pos[0]-(BLACK_KNIGHT_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_KNIGHT_IMAGE.get_height()//2) + move_y))
-        elif grabbed_unit == "BR":
+        if "BR" in grabbed_unit:
             SCREEN.blit(BLACK_ROOK_IMAGE, (mouse_pos[0]-(BLACK_ROOK_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_ROOK_IMAGE.get_height()//2) + move_y))
-        elif grabbed_unit == "BF":
+        if "BF" in grabbed_unit:
             SCREEN.blit(BLACK_BISHOP_IMAGE, (mouse_pos[0]-(BLACK_BISHOP_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_BISHOP_IMAGE.get_height()//2) + move_y))
-        elif grabbed_unit == "BQ":
+        if "BQ" in grabbed_unit:
             SCREEN.blit(BLACK_QUEEN_IMAGE, (mouse_pos[0]-(BLACK_QUEEN_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_QUEEN_IMAGE.get_height()//2) + move_y))
-        elif grabbed_unit == "BG":
+        if "BG" in grabbed_unit:
             SCREEN.blit(BLACK_KING_IMAGE, (mouse_pos[0]-(BLACK_KING_IMAGE.get_width()//2), mouse_pos[1]-(BLACK_KING_IMAGE.get_height()//2) + move_y))
-        elif grabbed_unit == "WP":
+        if "WP" in grabbed_unit:
             SCREEN.blit(WHITE_PAWN, (mouse_pos[0]-(WHITE_PAWN.get_width()//2), mouse_pos[1]-(WHITE_PAWN.get_height()//2) + move_y))
-        elif grabbed_unit == "WK":
+        if "WK" in grabbed_unit:
             SCREEN.blit(WHITE_KNIGHT_IMAGE, (mouse_pos[0]-(WHITE_KNIGHT_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_KNIGHT_IMAGE.get_height()//2) + move_y))
-        elif grabbed_unit == "WR":
+        if "WR" in grabbed_unit:
             SCREEN.blit(WHITE_ROOK_IMAGE, (mouse_pos[0]-(WHITE_ROOK_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_ROOK_IMAGE.get_height()//2) + move_y))
-        elif grabbed_unit == "WF":
+        if "WF" in grabbed_unit:
             SCREEN.blit(WHITE_BISHOP_IMAGE, (mouse_pos[0]-(WHITE_BISHOP_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_BISHOP_IMAGE.get_height()//2) + move_y))
-        elif grabbed_unit == "WQ":
+        if "WQ" in grabbed_unit:
             SCREEN.blit(WHITE_QUEEN_IMAGE, (mouse_pos[0]-(WHITE_QUEEN_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_QUEEN_IMAGE.get_height()//2) + move_y))
-        elif grabbed_unit == "WG":
+        if "WG" in grabbed_unit:
             SCREEN.blit(WHITE_KING_IMAGE, (mouse_pos[0]-(WHITE_KING_IMAGE.get_width()//2), mouse_pos[1]-(WHITE_KING_IMAGE.get_height()//2) + move_y))
+
+    draw_moves(board)
+    save_button.draw(SCREEN)
 
     if show_debug:
         draw_debug()
     draw_debug_message()
     draw_console()
     pg.display.update()
+
+
+def draw_moves(board):
+    y = -20
+    for i in board:
+        y += 20
+    for move in board:
+        if "B" in move:
+            colour = BLACK
+        else:
+            colour = WHITE
+        draw_move = SMALL_DEFAULT_FONT.render(str(move), 1, colour)
+        SCREEN.blit(draw_move, (WIDTH-draw_move.get_width(), y))
+        y -= 20
 
 
 def draw_board(offset_x, offset_y, grid_size, cell_size, m_y):
@@ -796,9 +841,9 @@ def draw_title(play_button):
     SCREEN.fill((0, 150, 150))
     title_text = BIG_DEFAULT_FONT.render("CHESS!!! PLAY NOW!", 1, WHITE)
     SCREEN.blit(title_text, ((WIDTH//2 - title_text.get_width()//2, 75)))
-    pg.draw.rect(SCREEN, WHITE, play_button)
-    play_text = NORMAL_DEFAULT_FONT.render("PLAY CHESS", 1, BLACK)
-    SCREEN.blit(play_text, (WIDTH//2 - play_text.get_width()//2, play_button.y + 20))
+    play_button.draw(SCREEN)
+    #play_text = NORMAL_DEFAULT_FONT.render("PLAY CHESS", 1, BLACK)
+    #SCREEN.blit(play_text, (WIDTH//2 - play_text.get_width()//2, play_button.y + 20))
     if show_debug:
         draw_debug()
     draw_debug_message()
@@ -812,9 +857,8 @@ def draw_retry_screen(move_y, retry_button, winner):
 
     title_text = BIG_DEFAULT_FONT.render(f"{winner} won! Replay?", 1, WHITE)
     SCREEN.blit(title_text, ((WIDTH//2 - title_text.get_width()//2, 75 + move_y)))
-    pg.draw.rect(SCREEN, WHITE, retry_button)
-    play_text = NORMAL_DEFAULT_FONT.render("PLAY CHESS", 1, BLACK)
-    SCREEN.blit(play_text, (WIDTH//2 - play_text.get_width()//2, retry_button.y + 20))
+    retry_button.draw(SCREEN)
+    #SCREEN.blit(play_text, (WIDTH//2 - play_text.get_width()//2, retry_button.y + 20))
 
     if show_debug:
         draw_debug()
@@ -829,7 +873,7 @@ def retry_screen(winner):
     global grid
     SOUNDTRACK.stop()
     move_y = HEIGHT * -1
-    retry_button_bounds = [(WIDTH//2 - 150, WIDTH//2 - 150 + 300), (300, 400)]
+    retry_button = button((WIDTH//2-150, HEIGHT//2-50), (300, 100), "Replay?", WHITE)
 
     button_set = False
     clock = pg.time.Clock()
@@ -849,18 +893,18 @@ def retry_screen(winner):
             if event.type == pg.MOUSEBUTTONDOWN:
                 mouse = pg.mouse.get_pressed()
                 mouse_pos = pg.mouse.get_pos()
-                if mouse[0] and ((mouse_pos[0] >=retry_button_bounds[0][0] and mouse_pos[0] <=retry_button_bounds[0][1]) and (mouse_pos[1] >=retry_button_bounds[1][0] and mouse_pos[1] <=retry_button_bounds[1][1])):
+                if mouse[0] and retry_button.click(mouse_pos):
                     if button_set:
                         run = False
                         grid = [
-                            ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
-                            ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
+                            ["1BR", "1BK", "1BF", "BQ", "BG", "2BF", "2BK", "2BR"],
+                            ["1BP", "2BP", "3BP", "4BP", "5BP", "6BP", "7BP", "8BP"],
                             ["", "", "", "", "", "", "", ""],
                             ["", "", "", "", "", "", "", ""],
                             ["", "", "", "", "", "", "", ""],
                             ["", "", "", "", "", "", "", ""],
-                            ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
-                            ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"],
+                            ["1WP", "2WP", "3WP", "4WP", "5WP", "6WP", "7WP", "8WP"],
+                            ["1WR", "1WK", "1WF", "WQ", "WG", "2WF", "2WK", "2WR"],
                         ]
                         break
             
@@ -886,10 +930,9 @@ def retry_screen(winner):
     
         if move_y < 0:
             move_y = clamp(move_y + 10, HEIGHT * -1, 0)
+            retry_button.pos = (WIDTH//2-150, HEIGHT//2-50+move_y)
         else:
             button_set = True
-        
-        retry_button = pg.Rect(WIDTH//2 - 150, 300 + move_y, 300, 100)
 
         if show_debug:
             handle_debugs("O")
@@ -904,6 +947,7 @@ def title():
     global HEIGHT
 
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
+    play_button = button((WIDTH//2-150, HEIGHT//2-50), (300, 100), "PLAY CHESS!", WHITE)
     
     clock = pg.time.Clock()
     run = True
@@ -913,8 +957,6 @@ def title():
     SOUNDTRACK.play()
     while run:
         WIDTH, HEIGHT = SCREEN.get_size()
-        play_button = pg.Rect(WIDTH//2 - 150, 300, 300, 100)
-        play_bounds = [(WIDTH//2 - 150, WIDTH//2 - 150 + 300), (300, 400)]
         clock.tick(FPS)
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -927,7 +969,7 @@ def title():
             if event.type == pg.MOUSEBUTTONDOWN:
                 mouse = pg.mouse.get_pressed()
                 mouse_pos = pg.mouse.get_pos()
-                if mouse[0] and ((mouse_pos[0] >=play_bounds[0][0] and mouse_pos[0] <=play_bounds[0][1]) and (mouse_pos[1] >=play_bounds[1][0] and mouse_pos[1] <=play_bounds[1][1])):
+                if mouse[0] and play_button.click(mouse_pos):
                     run = False
                     break
 
@@ -967,6 +1009,7 @@ def main():
     GAME_END.stop()
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
     clock = pg.time.Clock()
+    save_button = button((50, HEIGHT-50), (40, 40), "S", WHITE)
     move_y = HEIGHT * -1
     board_set = False
     run = True
@@ -974,6 +1017,8 @@ def main():
     winner = "Jester"
     console = False
     check = ["", ""]
+    queen_count = [0, 0]
+    board = []
     global console_text
     global command
     global grid
@@ -1010,8 +1055,8 @@ def main():
                 
                 if event.type == pg.MOUSEBUTTONDOWN:
                     mouse = pg.mouse.get_pressed()
+                    mouse_pos = pg.mouse.get_pos()
                     if mouse[0]:
-                        mouse_pos = pg.mouse.get_pos()
                         get_tile(mouse_pos[0], mouse_pos[1], OFFSET_X, OFFSET_Y)
                         if grabbed == "":
                             if not turn[:1] in grid[grid_y][grid_x]:
@@ -1024,11 +1069,14 @@ def main():
                             grid[grid_y][grid_x] = ""
                         else:
                             if "O" in grid[grid_y][grid_x]:
+                                board.append(grabbed+str(grabbed_pos[0])+str(grabbed_pos[1]))
                                 remove_pos(grabbed, grabbed_pos)
                                 if "WP" in grabbed and grid_y == 0:
-                                    grabbed = "WQ"
+                                    queen_count[0] += 1
+                                    grabbed = f"WQ{queen_count[0]}"
                                 if "BP" in grabbed and grid_y == 7:
-                                    grabbed = "BQ"
+                                    queen_count[1] += 1
+                                    grabbed = f"BQ{queen_count[1]}"
                                 if "G" in grid[grid_y][grid_x]:
                                     if "W" in grid[grid_y][grid_x]:
                                         winner = "Black"
@@ -1049,6 +1097,9 @@ def main():
                                 remove_pos(grabbed, grabbed_pos)
                                 check_check()
                                 grabbed = ""
+                            
+                        if mouse[0] and save_button.click(mouse_pos):
+                            save(board)
 
             if event.type == pg.KEYDOWN:
                 if console:
@@ -1083,7 +1134,7 @@ def main():
                 debug_message.pop(debug-1)
                 debug_time.pop(debug-1)
 
-        draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check, board_set, move_y)
+        draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check, board, move_y, save_button)
 
     pg.time.wait(500)
     retry_screen(winner)
