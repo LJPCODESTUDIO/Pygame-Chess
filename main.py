@@ -3,6 +3,8 @@ import math
 import os
 import json
 import datetime
+import tkinter
+import tkinter.filedialog
 
 #Init stuffs
 pg.mixer.init()
@@ -195,9 +197,43 @@ def clamp(val, min, max):
 
 
 def save(board):
-    time_stamp = datetime.datetime.now()
-    with open(os.path.join("Saves/", f"save-{time_stamp}"), "x") as f:
-        json.dumps(board)
+    try:
+        time_stamp = str(datetime.datetime.now()).replace(" ", "_")
+        time_stamp = time_stamp.replace(":", ".")
+        file = f"save-{time_stamp}.json"
+        top = tkinter.Tk()
+        top.withdraw()  # hide window
+        file_name = tkinter.filedialog.asksaveasfilename(
+            parent=top,
+            filetypes=[("Json", ".json")],
+            initialdir="Saves",
+            initialfile=file,
+            defaultextension=".json",
+            title="Save as..."
+            )
+        top.destroy()
+        with open(file_name, "w") as f:
+            json.dump(board, f)
+    except:
+        return "Canceled"
+    return file_name
+
+
+def load():
+    """Create a Tk file dialog and cleanup when finished"""
+    try:
+        top = tkinter.Tk()
+        top.withdraw()  # hide window
+        file_name = tkinter.filedialog.askopenfile(
+            parent=top,
+            filetypes=[("Json", ".json")],
+            initialdir="Saves",
+            )
+        top.destroy()
+        board = json.load(file_name)
+    except:
+        return []
+    return board
 
 
 #Handle the logic
@@ -837,13 +873,12 @@ def draw_board(offset_x, offset_y, grid_size, cell_size, m_y):
 
 
 #Draw the title screen
-def draw_title(play_button):
+def draw_title(buttons):
     SCREEN.fill((0, 150, 150))
     title_text = BIG_DEFAULT_FONT.render("CHESS!!! PLAY NOW!", 1, WHITE)
     SCREEN.blit(title_text, ((WIDTH//2 - title_text.get_width()//2, 75)))
-    play_button.draw(SCREEN)
-    #play_text = NORMAL_DEFAULT_FONT.render("PLAY CHESS", 1, BLACK)
-    #SCREEN.blit(play_text, (WIDTH//2 - play_text.get_width()//2, play_button.y + 20))
+    for btn in buttons:
+        btn.draw(SCREEN)
     if show_debug:
         draw_debug()
     draw_debug_message()
@@ -851,14 +886,14 @@ def draw_title(play_button):
     pg.display.update()
 
 
-def draw_retry_screen(move_y, retry_button, winner):
+def draw_retry_screen(move_y, buttons, winner):
     bg = pg.Rect(0, move_y, WIDTH, HEIGHT)
     pg.draw.rect(SCREEN, (0, 150, 150), bg)
 
     title_text = BIG_DEFAULT_FONT.render(f"{winner} won! Replay?", 1, WHITE)
     SCREEN.blit(title_text, ((WIDTH//2 - title_text.get_width()//2, 75 + move_y)))
-    retry_button.draw(SCREEN)
-    #SCREEN.blit(play_text, (WIDTH//2 - play_text.get_width()//2, retry_button.y + 20))
+    for btn in buttons:
+        btn.draw(SCREEN)
 
     if show_debug:
         draw_debug()
@@ -867,13 +902,13 @@ def draw_retry_screen(move_y, retry_button, winner):
     pg.display.update()
 
 
-def retry_screen(winner):
+def retry_screen(winner, board):
     global WIDTH
     global HEIGHT
     global grid
     SOUNDTRACK.stop()
     move_y = HEIGHT * -1
-    retry_button = button((WIDTH//2-150, HEIGHT//2-50), (300, 100), "Replay?", WHITE)
+    buttons = [button((WIDTH//2-150, HEIGHT//2-50), (300, 100), "Replay?", WHITE), button((WIDTH//2-150, HEIGHT//2+100), (300, 100), "SAVE?", WHITE)]
 
     button_set = False
     clock = pg.time.Clock()
@@ -893,20 +928,24 @@ def retry_screen(winner):
             if event.type == pg.MOUSEBUTTONDOWN:
                 mouse = pg.mouse.get_pressed()
                 mouse_pos = pg.mouse.get_pos()
-                if mouse[0] and retry_button.click(mouse_pos):
-                    if button_set:
-                        run = False
-                        grid = [
-                            ["1BR", "1BK", "1BF", "BQ", "BG", "2BF", "2BK", "2BR"],
-                            ["1BP", "2BP", "3BP", "4BP", "5BP", "6BP", "7BP", "8BP"],
-                            ["", "", "", "", "", "", "", ""],
-                            ["", "", "", "", "", "", "", ""],
-                            ["", "", "", "", "", "", "", ""],
-                            ["", "", "", "", "", "", "", ""],
-                            ["1WP", "2WP", "3WP", "4WP", "5WP", "6WP", "7WP", "8WP"],
-                            ["1WR", "1WK", "1WF", "WQ", "WG", "2WF", "2WK", "2WR"],
-                        ]
-                        break
+                if mouse[0]:
+                    if buttons[0].click(mouse_pos):
+                        if button_set:
+                            run = False
+                            grid = [
+                                ["1BR", "1BK", "1BF", "BQ", "BG", "2BF", "2BK", "2BR"],
+                                ["1BP", "2BP", "3BP", "4BP", "5BP", "6BP", "7BP", "8BP"],
+                                ["", "", "", "", "", "", "", ""],
+                                ["", "", "", "", "", "", "", ""],
+                                ["", "", "", "", "", "", "", ""],
+                                ["", "", "", "", "", "", "", ""],
+                                ["1WP", "2WP", "3WP", "4WP", "5WP", "6WP", "7WP", "8WP"],
+                                ["1WR", "1WK", "1WF", "WQ", "WG", "2WF", "2WK", "2WR"],
+                            ]
+                            break
+                    if buttons[1].click(mouse_pos):
+                        debug_message.append("Game Saved: " + save(board))
+                        debug_time.append(pg.time.get_ticks())
             
             if event.type == pg.KEYDOWN:
                 if console:
@@ -930,13 +969,14 @@ def retry_screen(winner):
     
         if move_y < 0:
             move_y = clamp(move_y + 10, HEIGHT * -1, 0)
-            retry_button.pos = (WIDTH//2-150, HEIGHT//2-50+move_y)
+            buttons[0].pos = (WIDTH//2-150, HEIGHT//2-50+move_y)
+            buttons[1].pos = (WIDTH//2-150, HEIGHT//2-150+move_y)
         else:
             button_set = True
 
         if show_debug:
             handle_debugs("O")
-        draw_retry_screen(move_y, retry_button, winner)
+        draw_retry_screen(move_y, buttons, winner)
 
     main()
 
@@ -947,11 +987,12 @@ def title():
     global HEIGHT
 
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
-    play_button = button((WIDTH//2-150, HEIGHT//2-50), (300, 100), "PLAY CHESS!", WHITE)
+    buttons = [button((WIDTH//2-150, HEIGHT//2-50), (300, 100), "PLAY CHESS!", WHITE), button((WIDTH//2-150, HEIGHT//2+100), (300, 100), "LOAD GAME", WHITE)]
     
     clock = pg.time.Clock()
     run = True
     console = False
+    board = []
     global console_text
     global command
     SOUNDTRACK.play()
@@ -969,7 +1010,11 @@ def title():
             if event.type == pg.MOUSEBUTTONDOWN:
                 mouse = pg.mouse.get_pressed()
                 mouse_pos = pg.mouse.get_pos()
-                if mouse[0] and play_button.click(mouse_pos):
+                if mouse[0] and buttons[0].click(mouse_pos):
+                    run = False
+                    break
+                if mouse[0] and buttons[1].click(mouse_pos):
+                    board = load()
                     run = False
                     break
 
@@ -996,12 +1041,13 @@ def title():
         if show_debug:
             handle_debugs("O")
         
-        draw_title(play_button)
+        draw_title(buttons)
 
-    main()
+    main(board)
+
 
 #Main game loop
-def main():
+def main(load):
     global WIDTH
     global HEIGHT
     global OFFSET_X
@@ -1009,9 +1055,10 @@ def main():
     GAME_END.stop()
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
     clock = pg.time.Clock()
-    save_button = button((50, HEIGHT-50), (40, 40), "S", WHITE)
+    save_button = button((5, 5), (105, 45), "SAVE", WHITE)
     move_y = HEIGHT * -1
     board_set = False
+    loading = True
     run = True
     turn = "White"
     winner = "Jester"
@@ -1058,48 +1105,50 @@ def main():
                     mouse_pos = pg.mouse.get_pos()
                     if mouse[0]:
                         get_tile(mouse_pos[0], mouse_pos[1], OFFSET_X, OFFSET_Y)
-                        if grabbed == "":
-                            if not turn[:1] in grid[grid_y][grid_x]:
-                                continue
-                            old_grid[grid_y][grid_x] = grid[grid_y][grid_x]
-                            grabbed = grid[grid_y][grid_x].replace("O", "")
-                            grabbed_pos[0] = grid_y
-                            grabbed_pos[1] = grid_x
-                            find_pos(grabbed, grabbed_pos)
-                            grid[grid_y][grid_x] = ""
-                        else:
-                            if "O" in grid[grid_y][grid_x]:
-                                board.append(grabbed+str(grabbed_pos[0])+str(grabbed_pos[1]))
-                                remove_pos(grabbed, grabbed_pos)
-                                if "WP" in grabbed and grid_y == 0:
-                                    queen_count[0] += 1
-                                    grabbed = f"WQ{queen_count[0]}"
-                                if "BP" in grabbed and grid_y == 7:
-                                    queen_count[1] += 1
-                                    grabbed = f"BQ{queen_count[1]}"
-                                if "G" in grid[grid_y][grid_x]:
-                                    if "W" in grid[grid_y][grid_x]:
-                                        winner = "Black"
-                                    if "B" in grid[grid_y][grid_x]:
-                                        winner = "White"
-                                    run = False
-                                grid[grid_y][grid_x] = grabbed
-                                remove_pos(grabbed, grabbed_pos)
-                                check_check()
-                                grabbed = ""
-                                if "W" in turn:
-                                    turn = "Black"
-                                else:
-                                    turn = "White"
-
+                        if mouse_pos[0] >= OFFSET_X and mouse_pos[0] <= OFFSET_X+(GRID_SIZE*CELL_SIZE) and mouse_pos[1] >= OFFSET_Y and mouse_pos[1] <= OFFSET_Y+(GRID_SIZE*CELL_SIZE):
+                            if grabbed == "":
+                                if not turn[:1] in grid[grid_y][grid_x]:
+                                    continue
+                                old_grid[grid_y][grid_x] = grid[grid_y][grid_x]
+                                grabbed = grid[grid_y][grid_x].replace("O", "")
+                                grabbed_pos[0] = grid_y
+                                grabbed_pos[1] = grid_x
+                                find_pos(grabbed, grabbed_pos)
+                                grid[grid_y][grid_x] = ""
                             else:
-                                grid[grabbed_pos[0]][grabbed_pos[1]] = old_grid[grabbed_pos[0]][grabbed_pos[1]]
-                                remove_pos(grabbed, grabbed_pos)
-                                check_check()
-                                grabbed = ""
+                                if "O" in grid[grid_y][grid_x]:
+                                    board.append(grabbed+str(grabbed_pos[0])+str(grabbed_pos[1]))
+                                    remove_pos(grabbed, grabbed_pos)
+                                    if "WP" in grabbed and grid_y == 0:
+                                        queen_count[0] += 1
+                                        grabbed = f"WQ{queen_count[0]}"
+                                    if "BP" in grabbed and grid_y == 7:
+                                        queen_count[1] += 1
+                                        grabbed = f"BQ{queen_count[1]}"
+                                    if "G" in grid[grid_y][grid_x]:
+                                        if "W" in grid[grid_y][grid_x]:
+                                            winner = "Black"
+                                        if "B" in grid[grid_y][grid_x]:
+                                            winner = "White"
+                                        run = False
+                                    grid[grid_y][grid_x] = grabbed
+                                    remove_pos(grabbed, grabbed_pos)
+                                    check_check()
+                                    grabbed = ""
+                                    if "W" in turn:
+                                        turn = "Black"
+                                    else:
+                                        turn = "White"
+
+                                else:
+                                    grid[grabbed_pos[0]][grabbed_pos[1]] = old_grid[grabbed_pos[0]][grabbed_pos[1]]
+                                    remove_pos(grabbed, grabbed_pos)
+                                    check_check()
+                                    grabbed = ""
                             
                         if mouse[0] and save_button.click(mouse_pos):
-                            save(board)
+                            debug_message.append("Game Saved: " + save(board))
+                            debug_time.append(pg.time.get_ticks())
 
             if event.type == pg.KEYDOWN:
                 if console:
@@ -1126,8 +1175,20 @@ def main():
         
         if move_y < 0:
             move_y = clamp(move_y + 10, HEIGHT * -1, 0)
+            save_button.pos = (5, 5+move_y)
         else:
             board_set = True
+            if len(load) > 0 and loading == True:
+                for move in load:
+                    board.append(move)
+                    length = len(move)-1
+                    piece = move[:length-1]
+                    x = int(move[length-1])
+                    y = int(move[length])
+                    grid[y][x] = piece
+                    draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check, board, move_y, save_button)
+                    pg.time.wait(500)
+                loading = False
         
         for debug in range(len(debug_message)):
             if pg.time.get_ticks() - debug_time[debug-1] >= 5000:
@@ -1137,7 +1198,7 @@ def main():
         draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check, board, move_y, save_button)
 
     pg.time.wait(500)
-    retry_screen(winner)
+    retry_screen(winner, board)
 
 
 if __name__ == "__main__":
