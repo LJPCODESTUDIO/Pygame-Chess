@@ -89,16 +89,19 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
+X_INDEX = {'a':0, 'b':1, 'c':2, 'd':3, 'e':4, 'f':5, 'g':6, 'h':7}
+X_LETTER = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+
 #Global Vars
 grid = [
-    ["1BR", "1BK", "1BF", "BQ", "BG", "2BF", "2BK", "2BR"],
-    ["1BP", "2BP", "3BP", "4BP", "5BP", "6BP", "7BP", "8BP"],
+    ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
+    ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
     ["", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", ""],
-    ["1WP", "2WP", "3WP", "4WP", "5WP", "6WP", "7WP", "8WP"],
-    ["1WR", "1WK", "1WF", "WQ", "WG", "2WF", "2WK", "2WR"],
+    ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
+    ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"],
 ]
 old_grid = [
     ["", "", "", "", "", "", "", ""],
@@ -149,7 +152,7 @@ class button():
             return False
 
 
-def reload_assets():
+def reload_assets(mode):
     global SOUNDTRACK
     global GAME_END
     global BLACK_PAWN
@@ -164,27 +167,50 @@ def reload_assets():
     global WHITE_BISHOP_IMAGE
     global WHITE_QUEEN_IMAGE
     global WHITE_KING_IMAGE
-    #Sounds
-    SOUNDTRACK = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Match.wav'))
-    SOUNDTRACK.set_volume(.5)
-    GAME_END = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Game_End.wav'))
-    GAME_END.set_volume(.5)
+    if mode == "R":
+        #Sounds
+        SOUNDTRACK = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Match.wav'))
+        SOUNDTRACK.set_volume(.5)
+        GAME_END = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Game_End.wav'))
+        GAME_END.set_volume(.5)
 
-    #Black Unit images
-    BLACK_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "Black Pawn.svg"))
-    BLACK_KNIGHT_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Knight.svg"))
-    BLACK_ROOK_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Rook.svg"))
-    BLACK_BISHOP_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Bishop.svg"))
-    BLACK_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Queen.svg"))
-    BLACK_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black King.svg"))
+        #Black Unit images
+        BLACK_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "Black Pawn.svg"))
+        BLACK_KNIGHT_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Knight.svg"))
+        BLACK_ROOK_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Rook.svg"))
+        BLACK_BISHOP_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Bishop.svg"))
+        BLACK_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black Queen.svg"))
+        BLACK_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "Black King.svg"))
 
-    #White Unit Images
-    WHITE_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "White Pawn.svg"))
-    WHITE_KNIGHT_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Knight.svg"))
-    WHITE_ROOK_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Rook.svg"))
-    WHITE_BISHOP_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Bishop.svg"))
-    WHITE_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Queen.svg"))
-    WHITE_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White King.svg"))
+        #White Unit Images
+        WHITE_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "White Pawn.svg"))
+        WHITE_KNIGHT_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Knight.svg"))
+        WHITE_ROOK_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Rook.svg"))
+        WHITE_BISHOP_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Bishop.svg"))
+        WHITE_QUEEN_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White Queen.svg"))
+        WHITE_KING_IMAGE = pg.image.load(os.path.join(f"Assets/{pack}", "White King.svg"))
+    else:
+        #Sounds
+        SOUNDTRACK = pg.mixer.Sound(os.path.join(f'{pack}/Music', 'Match.wav'))
+        SOUNDTRACK.set_volume(.5)
+        GAME_END = pg.mixer.Sound(os.path.join(f'{pack}/Music', 'Game_End.wav'))
+        GAME_END.set_volume(.5)
+
+        #Black Unit images
+        BLACK_PAWN = pg.image.load(os.path.join(pack, "Black Pawn.svg"))
+        BLACK_KNIGHT_IMAGE = pg.image.load(os.path.join(pack, "Black Knight.svg"))
+        BLACK_ROOK_IMAGE = pg.image.load(os.path.join(pack, "Black Rook.svg"))
+        BLACK_BISHOP_IMAGE = pg.image.load(os.path.join(pack, "Black Bishop.svg"))
+        BLACK_QUEEN_IMAGE = pg.image.load(os.path.join(pack, "Black Queen.svg"))
+        BLACK_KING_IMAGE = pg.image.load(os.path.join(pack, "Black King.svg"))
+
+        #White Unit Images
+        WHITE_PAWN = pg.image.load(os.path.join(pack, "White Pawn.svg"))
+        WHITE_KNIGHT_IMAGE = pg.image.load(os.path.join(pack, "White Knight.svg"))
+        WHITE_ROOK_IMAGE = pg.image.load(os.path.join(pack, "White Rook.svg"))
+        WHITE_BISHOP_IMAGE = pg.image.load(os.path.join(pack, "White Bishop.svg"))
+        WHITE_QUEEN_IMAGE = pg.image.load(os.path.join(pack, "White Queen.svg"))
+        WHITE_KING_IMAGE = pg.image.load(os.path.join(pack, "White King.svg"))
 
 
 #Custom clamp function to keep grid index in range
@@ -234,6 +260,24 @@ def load():
     except:
         return []
     return board
+
+
+def change_resource_pack():
+    global pack
+    try:
+        top = tkinter.Tk()
+        top.withdraw()  # hide window
+        pack_dir = tkinter.filedialog.askdirectory(
+            parent=top,
+            initialdir="Assets",
+            mustexist=True
+            )
+        top.destroy()
+        pack = pack_dir
+        reload_assets("D")
+    except:
+        return "Failed"
+    return pack
 
 
 #Handle the logic
@@ -294,14 +338,14 @@ def handle_commands():
             ]
     elif command == "restart":
         grid = [
-                ["1BR", "1BK", "1BF", "BQ", "BG", "2BF", "2BK", "2BR"],
-                ["1BP", "2BP", "3BP", "4BP", "5BP", "6BP", "7BP", "8BP"],
+                ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
+                ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                 ["", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", ""],
-                ["1WP", "2WP", "3WP", "4WP", "5WP", "6WP", "7WP", "8WP"],
-                ["1WR", "1WK", "1WF", "WQ", "WG", "2WF", "2WK", "2WR"],
+                ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
+                ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"],
             ]
     elif command == "fill":
         grid = [
@@ -336,7 +380,7 @@ def handle_commands():
             draw_debug_message()
             if args[2] in os.listdir("Assets"):
                 pack = args[2]
-                reload_assets()
+                reload_assets("R")
                 debug_message.append(f"Resource Pack set to {pack}")
                 debug_time.append(pg.time.get_ticks())
                 return
@@ -933,14 +977,14 @@ def retry_screen(winner, board):
                         if button_set:
                             run = False
                             grid = [
-                                ["1BR", "1BK", "1BF", "BQ", "BG", "2BF", "2BK", "2BR"],
-                                ["1BP", "2BP", "3BP", "4BP", "5BP", "6BP", "7BP", "8BP"],
+                                ["BR", "BK", "BF", "BQ", "BG", "BF", "BK", "BR"],
+                                ["BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"],
                                 ["", "", "", "", "", "", "", ""],
                                 ["", "", "", "", "", "", "", ""],
                                 ["", "", "", "", "", "", "", ""],
                                 ["", "", "", "", "", "", "", ""],
-                                ["1WP", "2WP", "3WP", "4WP", "5WP", "6WP", "7WP", "8WP"],
-                                ["1WR", "1WK", "1WF", "WQ", "WG", "2WF", "2WK", "2WR"],
+                                ["WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"],
+                                ["WR", "WK", "WF", "WQ", "WG", "WF", "WK", "WR"],
                             ]
                             break
                     if buttons[1].click(mouse_pos):
@@ -987,7 +1031,11 @@ def title():
     global HEIGHT
 
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
-    buttons = [button((WIDTH//2-150, HEIGHT//2-50), (300, 100), "PLAY CHESS!", WHITE), button((WIDTH//2-150, HEIGHT//2+100), (300, 100), "LOAD GAME", WHITE)]
+    buttons = [
+                button((WIDTH//2-150, HEIGHT//2-100), (300, 100), "PLAY CHESS!", WHITE),
+                button((WIDTH//2-150, HEIGHT//2+25), (300, 100), "LOAD GAME", WHITE),
+                button((WIDTH//2-150, HEIGHT//2+150), (300, 100), "CHANGE SKIN", WHITE)
+            ]
     
     clock = pg.time.Clock()
     run = True
@@ -1016,6 +1064,9 @@ def title():
                 if mouse[0] and buttons[1].click(mouse_pos):
                     board = load()
                     run = False
+                    break
+                if mouse[0] and buttons[2].click(mouse_pos):
+                    change_resource_pack()
                     break
 
             if event.type == pg.KEYDOWN:
@@ -1065,6 +1116,7 @@ def main(load):
     console = False
     check = ["", ""]
     queen_count = [0, 0]
+    old_notation = ""
     board = []
     global console_text
     global command
@@ -1117,7 +1169,7 @@ def main(load):
                                 grid[grid_y][grid_x] = ""
                             else:
                                 if "O" in grid[grid_y][grid_x]:
-                                    board.append(grabbed+str(grabbed_pos[0])+str(grabbed_pos[1]))
+                                    old_notation = grabbed+str(X_LETTER[grabbed_pos[1]])+str(grabbed_pos[0]+1)
                                     remove_pos(grabbed, grabbed_pos)
                                     if "WP" in grabbed and grid_y == 0:
                                         queen_count[0] += 1
@@ -1132,6 +1184,7 @@ def main(load):
                                             winner = "White"
                                         run = False
                                     grid[grid_y][grid_x] = grabbed
+                                    board.append(old_notation+"-"+grabbed+str(X_LETTER[grid_x])+str(grid_y+1))
                                     remove_pos(grabbed, grabbed_pos)
                                     check_check()
                                     grabbed = ""
@@ -1178,13 +1231,16 @@ def main(load):
             save_button.pos = (5, 5+move_y)
         else:
             board_set = True
+            #WPa7-WPa5
+            #012345678
             if len(load) > 0 and loading == True:
                 for move in load:
-                    board.append(move)
-                    length = len(move)-1
-                    piece = move[:length-1]
-                    x = int(move[length-1])
-                    y = int(move[length])
+                    old_x = X_INDEX[move[7]]
+                    old_y = int(move[3]) - 1
+                    piece = move[5:7]
+                    x = X_INDEX[move[7]]
+                    y = int(move[8])-1
+                    grid[old_y][old_x] = ""
                     grid[y][x] = piece
                     draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check, board, move_y, save_button)
                     pg.time.wait(500)
