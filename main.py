@@ -65,6 +65,8 @@ SOUNDTRACK = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Match.wav'))
 SOUNDTRACK.set_volume(.5)
 GAME_END = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Game_End.wav'))
 GAME_END.set_volume(.5)
+MOVE_PIECE = pg.mixer.Sound(os.path.join(f"Assets/{pack}/Music", "Move.wav"))
+MOVE_PIECE.set_volume(.5)
 
 #Black Unit images
 BLACK_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "Black Pawn.svg"))
@@ -144,6 +146,11 @@ class button():
         pg.draw.rect(screen, self.colour, (self.pos[0], self.pos[1], self.size[0], self.size[1]))
         text = NORMAL_DEFAULT_FONT.render(self.text, 1, BLACK)
         screen.blit(text, (self.pos[0]+self.size[0]//2-text.get_width()//2, self.pos[1]+self.size[1]//2-text.get_height()//2))
+        mouse_pos = pg.mouse.get_pos()
+        if self.pos[0] <= mouse_pos[0] <= self.pos[0] + self.size[0] and self.pos[1] <= mouse_pos[1] <= self.pos[1] + self.size[1]:
+            s = pg.Surface(self.size)
+            s.set_alpha(50)
+            SCREEN.blit(s, self.pos)
     
     def click(self, pos):
         if self.pos[0] <= pos[0] <= self.pos[0] + self.size[0] and self.pos[1] <= pos[1] <= self.pos[1] + self.size[1]:
@@ -173,6 +180,8 @@ def reload_assets(mode):
         SOUNDTRACK.set_volume(.5)
         GAME_END = pg.mixer.Sound(os.path.join(f'Assets/{pack}/Music', 'Game_End.wav'))
         GAME_END.set_volume(.5)
+        MOVE_PIECE = pg.mixer.Sound(os.path.join(f"Assets/{pack}/Music", "Move.wav"))
+        MOVE_PIECE.set_volume(.5)
 
         #Black Unit images
         BLACK_PAWN = pg.image.load(os.path.join(f"Assets/{pack}", "Black Pawn.svg"))
@@ -195,6 +204,8 @@ def reload_assets(mode):
         SOUNDTRACK.set_volume(.5)
         GAME_END = pg.mixer.Sound(os.path.join(f'{pack}/Music', 'Game_End.wav'))
         GAME_END.set_volume(.5)
+        MOVE_PIECE = pg.mixer.Sound(os.path.join(f"{pack}/Music", "Move.wav"))
+        MOVE_PIECE.set_volume(.5)
 
         #Black Unit images
         BLACK_PAWN = pg.image.load(os.path.join(pack, "Black Pawn.svg"))
@@ -1032,9 +1043,10 @@ def title():
 
     pg.time.set_timer(REPEAT_SOUND, int(SOUNDTRACK.get_length() * 1000))
     buttons = [
-                button((WIDTH//2-150, HEIGHT//2-100), (300, 100), "PLAY CHESS!", WHITE),
-                button((WIDTH//2-150, HEIGHT//2+25), (300, 100), "LOAD GAME", WHITE),
-                button((WIDTH//2-150, HEIGHT//2+150), (300, 100), "CHANGE SKIN", WHITE)
+                button(((WIDTH//2-330//2)-170, (HEIGHT//2-50)), (330, 100), "PLAY CHESS!", WHITE),
+                button(((WIDTH//2-330//2)+170, (HEIGHT//2-50)), (330, 100), "LOAD GAME", WHITE),
+                button(((WIDTH//2-330//2)-170, (HEIGHT//2-50)+125), (330, 100), "RESOURCE PACK", WHITE),
+                button(((WIDTH//2-330//2)+170, (HEIGHT//2-50)+125), (330, 100), "QUIT", WHITE)
             ]
     
     clock = pg.time.Clock()
@@ -1068,6 +1080,9 @@ def title():
                 if mouse[0] and buttons[2].click(mouse_pos):
                     change_resource_pack()
                     break
+                if mouse[0] and buttons[3].click(mouse_pos):
+                    run = False
+                    pg.display.quit()
 
             if event.type == pg.KEYDOWN:
                 if console:
@@ -1169,7 +1184,8 @@ def main(load):
                                 grid[grid_y][grid_x] = ""
                             else:
                                 if "O" in grid[grid_y][grid_x]:
-                                    old_notation = grabbed+str(X_LETTER[grabbed_pos[1]])+str(grabbed_pos[0]+1)
+                                    MOVE_PIECE.play()
+                                    old_notation = grabbed.replace("X", "")+str(X_LETTER[grabbed_pos[1]])+str(grabbed_pos[0]+1)
                                     remove_pos(grabbed, grabbed_pos)
                                     if "WP" in grabbed and grid_y == 0:
                                         queen_count[0] += 1
@@ -1184,7 +1200,7 @@ def main(load):
                                             winner = "White"
                                         run = False
                                     grid[grid_y][grid_x] = grabbed
-                                    board.append(old_notation+"-"+grabbed+str(X_LETTER[grid_x])+str(grid_y+1))
+                                    board.append(old_notation+"-"+grabbed.replace("X", "")+str(X_LETTER[grid_x])+str(grid_y+1))
                                     remove_pos(grabbed, grabbed_pos)
                                     check_check()
                                     grabbed = ""
@@ -1235,15 +1251,21 @@ def main(load):
             #012345678
             if len(load) > 0 and loading == True:
                 for move in load:
-                    old_x = X_INDEX[move[7]]
+                    MOVE_PIECE.play()
+                    old_x = X_INDEX[move[2]]
                     old_y = int(move[3]) - 1
                     piece = move[5:7]
                     x = X_INDEX[move[7]]
                     y = int(move[8])-1
                     grid[old_y][old_x] = ""
                     grid[y][x] = piece
+                    if "W" in turn:
+                        turn = "Black"
+                    else:
+                        turn = "White"
+                    board.append(move)
                     draw_screen(GRID_SIZE, CELL_SIZE, grabbed, turn, check, board, move_y, save_button)
-                    pg.time.wait(500)
+                    pg.time.wait(200)
                 loading = False
         
         for debug in range(len(debug_message)):
